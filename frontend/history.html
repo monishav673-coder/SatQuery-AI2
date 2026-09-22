@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SATQUERY AI — Analysis History</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+  <link rel="stylesheet" href="/css/analysis.css" />
+</head>
+<body>
+<div class="starfield-bg"></div>
+
+<nav class="topnav">
+  <a href="/dashboard" class="nav-brand">
+    <div class="nav-brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#04071a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg></div>
+    <span class="nav-brand-name">SATQUERY AI</span>
+  </a>
+  <div class="nav-links">
+    <a href="/dashboard" class="nav-link">Home</a>
+    <a href="/analysis" class="nav-link">Analysis</a>
+    <a href="/history" class="nav-link active">History</a>
+    <a href="/models" class="nav-link">Models</a>
+    <a href="/profile" class="nav-link">Profile</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-lang"><select id="nav-lang" onchange="setLanguage(this.value)"><option value="en">EN</option><option value="ta">TA</option><option value="hi">HI</option><option value="te">TE</option><option value="kn">KN</option><option value="ml">ML</option><option value="bn">BN</option><option value="mr">MR</option></select></div>
+    <div class="nav-user" onclick="window.location='/profile'"><div class="nav-avatar" id="nav-avatar">U</div><span class="nav-username hide-mobile" id="nav-username">User</span></div>
+    <button class="btn btn-ghost btn-sm" onclick="handleLogout()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg><span class="hide-mobile">Logout</span></button>
+  </div>
+  <button class="nav-hamburger" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-nav" id="mobile-nav">
+  <a href="/dashboard" class="nav-link">Home</a><a href="/analysis" class="nav-link">Analysis</a>
+  <a href="/history" class="nav-link active">History</a><a href="/profile" class="nav-link">Profile</a>
+  <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:8px;">Logout</button>
+</div>
+
+<main class="page-wrapper container">
+  <div class="page-header animate-fade-in-up">
+    <div>
+      <h2>Analysis History</h2>
+      <p>All your previous satellite intelligence analyses</p>
+    </div>
+    <a href="/analysis" class="btn btn-primary btn-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+      New Analysis
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="glass-card animate-fade-in-up" style="padding:1rem 1.5rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;" style="animation-delay:0.05s;">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted);"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="search-input" class="form-input" placeholder="Search by location or ID..." style="flex:1;" oninput="filterHistory()" />
+    </div>
+    <select class="form-select" id="mode-filter" onchange="filterHistory()" style="width:auto;min-width:160px;">
+      <option value="">All Modes</option>
+      <option value="single">Single Image</option>
+      <option value="optical_sar">Optical + SAR</option>
+      <option value="multitemporal">Multitemporal</option>
+    </select>
+    <select class="form-select" id="status-filter" onchange="filterHistory()" style="width:auto;min-width:140px;">
+      <option value="">All Status</option>
+      <option value="completed">Completed</option>
+      <option value="failed">Failed</option>
+      <option value="processing">Processing</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="glass-card animate-fade-in-up" style="overflow:hidden;" style="animation-delay:0.1s;">
+    <div id="history-content">
+      <div style="text-align:center;padding:3rem;"><div class="spinner" style="margin:0 auto 1rem;"></div><p style="color:var(--text-muted);">Loading history...</p></div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="pagination"></div>
+</main>
+
+<script src="/js/language.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/history.js"></script>
+</body>
+</html>

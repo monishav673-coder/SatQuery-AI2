@@ -1,0 +1,68 @@
+# SATQUERY AI — .gitignore
+
+# Environment
+.env
+*.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.venv/
+*.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Database
+backend/database/*.db
+backend/database/*.sqlite
+backend/database/*.sqlite3
+
+# Uploads & reports
+backend/uploads/
+!backend/uploads/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Node (if any frontend tooling added)
+node_modules/
+package-lock.json
+
+# BigEarthNet dataset (too large for repo)
+backend/data/bigearthnet/*.tif
+backend/data/bigearthnet/*.json
+backend/data/bigearthnet/BigEarthNet-v1.0/
+
+# Model weights
+backend/models/*.pt
+backend/models/*.pth
+backend/models/*.onnx
+backend/models/*.h5
+backend/models/*.pb
+
+# Test artefacts
+.pytest_cache/
+.coverage
+htmlcov/

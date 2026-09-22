@@ -1,0 +1,55 @@
+# ── SATQUERY AI — .dockerignore ──────────────────────────────────────────────
+**/.git
+**/.gitignore
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/node_modules
+**/.env
+**/*.env
+**/.env.*
+!**/.env.example
+**/venv
+**/.venv
+**/env
+**/*.egg-info
+
+# Test artifacts
+tests/
+**/*.log
+**/coverage.xml
+**/.coverage
+**/htmlcov
+
+# Large datasets — configure BIGEARTHNET_DATASET_PATH to mount
+backend/data/bigearthnet/BigEarthNet-v1.0/
+
+# Model weights — mount via volumes in production
+backend/models/*.pt
+backend/models/*.pth
+backend/models/*.onnx
+backend/models/*.h5
+
+# Uploaded files (use volumes)
+backend/uploads/**
+!backend/uploads/.gitkeep
+
+# Database (use volumes / PostgreSQL)
+backend/database/*.db
+backend/database/*.sqlite
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docker files not needed inside container
+docker-compose*.yml
+*.Dockerfile

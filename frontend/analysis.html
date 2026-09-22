@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SATQUERY AI — Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+  <link rel="stylesheet" href="/css/analysis.css" />
+</head>
+<body>
+<div class="starfield-bg"></div>
+
+<!-- Top Navigation -->
+<nav class="topnav">
+  <a href="/dashboard" class="nav-brand">
+    <div class="nav-brand-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#04071a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+    </div>
+    <span class="nav-brand-name">SATQUERY AI</span>
+  </a>
+  <div class="nav-links">
+    <a href="/dashboard" class="nav-link">Home</a>
+    <a href="/analysis" class="nav-link active">Analysis</a>
+    <a href="/history" class="nav-link">History</a>
+    <a href="/models" class="nav-link">Models</a>
+    <a href="/profile" class="nav-link">Profile</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-lang">
+      <select id="nav-lang" onchange="setLanguage(this.value)">
+        <option value="en">EN</option><option value="ta">TA</option><option value="hi">HI</option>
+        <option value="te">TE</option><option value="kn">KN</option><option value="ml">ML</option>
+        <option value="bn">BN</option><option value="mr">MR</option>
+      </select>
+    </div>
+    <div class="nav-user" onclick="window.location='/profile'">
+      <div class="nav-avatar" id="nav-avatar">U</div>
+      <span class="nav-username hide-mobile" id="nav-username">User</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="handleLogout()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+      <span class="hide-mobile">Logout</span>
+    </button>
+  </div>
+  <button class="nav-hamburger" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-nav" id="mobile-nav">
+  <a href="/dashboard" class="nav-link">Home</a>
+  <a href="/analysis" class="nav-link active">Analysis</a>
+  <a href="/history" class="nav-link">History</a>
+  <a href="/profile" class="nav-link">Profile</a>
+  <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:8px;">Logout</button>
+</div>
+
+<main class="page-wrapper container" id="main-content">
+
+  <!-- Mode Selector (shown when no mode selected) -->
+  <div id="mode-selector-section">
+    <div class="page-header">
+      <div>
+        <h2>New Analysis</h2>
+        <p>Select an analysis mode to begin</p>
+      </div>
+    </div>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="selectAnalysisMode('single')">
+        <div class="mode-icon mode-icon-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        </div>
+        <div><div class="mode-title">Single Image Analysis</div><div class="mode-desc">Analyse one satellite image — land cover, buildings, water, agriculture.</div></div>
+        <span class="badge badge-accent">Single Image or Coordinates</span>
+      </div>
+      <div class="mode-card" onclick="selectAnalysisMode('optical_sar')">
+        <div class="mode-icon mode-icon-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg>
+        </div>
+        <div><div class="mode-title">Optical + SAR Analysis</div><div class="mode-desc">Fuse optical and Synthetic Aperture Radar imagery for enhanced multimodal analysis.</div></div>
+        <span class="badge badge-purple">Dual Image Fusion</span>
+      </div>
+      <div class="mode-card" onclick="selectAnalysisMode('multitemporal')">
+        <div class="mode-icon mode-icon-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+        </div>
+        <div><div class="mode-title">Multitemporal Analysis</div><div class="mode-desc">Compare before/after imagery to detect geographic changes and land transformation.</div></div>
+        <span class="badge badge-warning">Change Detection</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analysis Panel (shown when mode selected) -->
+  <div id="analysis-panel" class="hidden">
+
+    <div class="mode-header">
+      <button class="mode-back-btn" onclick="resetMode()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Back
+      </button>
+      <div>
+        <h2 id="mode-title-display">Analysis</h2>
+        <p id="mode-desc-display" style="color:var(--text-muted);font-size:0.875rem;"></p>
+      </div>
+    </div>
+
+    <div class="analysis-layout">
+      <!-- Left: Input panel -->
+      <div>
+        <!-- Input method tabs -->
+        <div class="input-method-tabs" id="input-method-tabs">
+          <button class="method-tab active" onclick="setInputMethod('image')" id="tab-image">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            Upload Image
+          </button>
+          <button class="method-tab" onclick="setInputMethod('coordinates')" id="tab-coords">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+            Coordinates
+          </button>
+        </div>
+
+        <!-- IMAGE UPLOAD PANEL -->
+        <div id="image-input-panel">
+
+          <!-- Single mode: 1 uploader -->
+          <div id="single-upload" class="glass-card" style="padding:1.5rem;margin-bottom:1rem;">
+            <h4 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">Upload Satellite Image</h4>
+            <div class="upload-zone" id="drop-primary" ondragover="onDragOver(event,'drop-primary')" ondragleave="onDragLeave('drop-primary')" ondrop="onDrop(event,'primary')">
+              <input type="file" id="file-primary" accept=".jpg,.jpeg,.png,.tif,.tiff" onchange="onFileSelect(event,'primary')" />
+              <div class="upload-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+              </div>
+              <div class="upload-label">Drag & drop or click to browse</div>
+              <div class="upload-hint">JPG · JPEG · PNG · TIFF · GeoTIFF — Max 100 MB</div>
+            </div>
+            <div id="preview-primary" class="hidden"></div>
+
+            <!-- Optional coordinates for uploaded image -->
+            <div class="img-coords-toggle" style="margin-top:1.1rem;">
+              <button type="button" class="img-coords-toggle-btn" onclick="toggleImgCoords('primary')" id="toggle-coords-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+                Add Location Coordinates <span class="toggle-badge">Optional</span>
+                <svg class="toggle-chevron" id="chevron-primary" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="img-coords-panel hidden" id="coords-panel-primary">
+                <div class="img-coords-inner">
+                  <p class="img-coords-hint">Link this image to a geographic location for map display and area estimation.</p>
+                  <div class="grid-2" style="gap:0.85rem;">
+                    <div class="form-group" style="margin:0;">
+                      <label class="form-label">Latitude <span class="coord-range">(−90 to 90)</span></label>
+                      <input type="number" id="img-lat-primary" class="form-input" placeholder="e.g. 28.6139" step="any" min="-90" max="90" oninput="onImgCoordInput('primary')" />
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                      <label class="form-label">Longitude <span class="coord-range">(−180 to 180)</span></label>
+                      <input type="number" id="img-lon-primary" class="form-input" placeholder="e.g. 77.2090" step="any" min="-180" max="180" oninput="onImgCoordInput('primary')" />
+                    </div>
+                  </div>
+                  <div id="img-coord-error-primary" class="error-msg hidden"></div>
+                  <div id="img-map-wrap-primary" class="img-map-wrap hidden">
+                    <div class="img-map-header">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span id="img-place-primary" style="font-size:0.8rem;color:var(--accent);">Locating…</span>
+                    </div>
+                    <div id="img-map-primary" class="img-map-tile"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Optical+SAR mode: 2 uploaders -->
+          <div id="sar-upload" class="hidden" style="margin-bottom:1rem;">
+            <div class="glass-card" style="padding:1.5rem;margin-bottom:1rem;">
+              <h4 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">Upload Optical Image</h4>
+              <div class="upload-zone" id="drop-optical" ondragover="onDragOver(event,'drop-optical')" ondragleave="onDragLeave('drop-optical')" ondrop="onDrop(event,'optical')">
+                <input type="file" id="file-optical" accept=".jpg,.jpeg,.png,.tif,.tiff" onchange="onFileSelect(event,'optical')" />
+                <div class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></div>
+                <div class="upload-label">Optical Image</div>
+                <div class="upload-hint">Visible / multispectral satellite image</div>
+              </div>
+              <div id="preview-optical" class="hidden"></div>
+              <!-- Optional coords for optical -->
+              <div class="img-coords-toggle" style="margin-top:1.1rem;">
+                <button type="button" class="img-coords-toggle-btn" onclick="toggleImgCoords('optical')" id="toggle-coords-optical">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+                  Add Location Coordinates <span class="toggle-badge">Optional</span>
+                  <svg class="toggle-chevron" id="chevron-optical" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="img-coords-panel hidden" id="coords-panel-optical">
+                  <div class="img-coords-inner">
+                    <p class="img-coords-hint">Link this image to a geographic location.</p>
+                    <div class="grid-2" style="gap:0.85rem;">
+                      <div class="form-group" style="margin:0;">
+                        <label class="form-label">Latitude <span class="coord-range">(−90 to 90)</span></label>
+                        <input type="number" id="img-lat-optical" class="form-input" placeholder="e.g. 28.6139" step="any" min="-90" max="90" oninput="onImgCoordInput('optical')" />
+                      </div>
+                      <div class="form-group" style="margin:0;">
+                        <label class="form-label">Longitude <span class="coord-range">(−180 to 180)</span></label>
+                        <input type="number" id="img-lon-optical" class="form-input" placeholder="e.g. 77.2090" step="any" min="-180" max="180" oninput="onImgCoordInput('optical')" />
+                      </div>
+                    </div>
+                    <div id="img-coord-error-optical" class="error-msg hidden"></div>
+                    <div id="img-map-wrap-optical" class="img-map-wrap hidden">
+                      <div class="img-map-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span id="img-place-optical" style="font-size:0.8rem;color:var(--accent);">Locating…</span>
+                      </div>
+                      <div id="img-map-optical" class="img-map-tile"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="glass-card" style="padding:1.5rem;">
+              <h4 style="margin-bottom:1rem;font-size:0.9rem;color:var(--accent2);text-transform:uppercase;letter-spacing:0.06em;">Upload SAR Image</h4>
+              <div class="upload-zone" id="drop-sar" style="border-color:rgba(124,58,237,0.3);" ondragover="onDragOver(event,'drop-sar')" ondragleave="onDragLeave('drop-sar')" ondrop="onDrop(event,'sar')">
+                <input type="file" id="file-sar" accept=".jpg,.jpeg,.png,.tif,.tiff" onchange="onFileSelect(event,'sar')" />
+                <div class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></div>
+                <div class="upload-label">SAR Image</div>
+                <div class="upload-hint">Synthetic Aperture Radar image</div>
+              </div>
+              <div id="preview-sar" class="hidden"></div>
+            </div>
+          </div>
+
+          <!-- Multitemporal mode: before/after -->
+          <div id="temporal-upload" class="hidden" style="margin-bottom:1rem;">
+            <div class="glass-card" style="padding:1.5rem;margin-bottom:1rem;">
+              <div class="temporal-label temporal-before">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                BEFORE IMAGE
+              </div>
+              <div class="upload-zone" id="drop-before" ondragover="onDragOver(event,'drop-before')" ondragleave="onDragLeave('drop-before')" ondrop="onDrop(event,'before')">
+                <input type="file" id="file-before" accept=".jpg,.jpeg,.png,.tif,.tiff" onchange="onFileSelect(event,'before')" />
+                <div class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></div>
+                <div class="upload-label">Before image</div>
+                <div class="upload-hint">Earlier observation</div>
+              </div>
+              <div id="preview-before" class="hidden"></div>
+              <div class="grid-2" style="gap:0.75rem;margin-top:1rem;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Before Date</label>
+                  <input type="date" id="before-date" class="form-input" />
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Before Time</label>
+                  <input type="time" id="before-time" class="form-input" />
+                </div>
+              </div>
+              <!-- Optional coords for before image -->
+              <div class="img-coords-toggle" style="margin-top:1.1rem;">
+                <button type="button" class="img-coords-toggle-btn" onclick="toggleImgCoords('before')" id="toggle-coords-before">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+                  Add Location Coordinates <span class="toggle-badge">Optional</span>
+                  <svg class="toggle-chevron" id="chevron-before" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="img-coords-panel hidden" id="coords-panel-before">
+                  <div class="img-coords-inner">
+                    <p class="img-coords-hint">Link the before image to a geographic location.</p>
+                    <div class="grid-2" style="gap:0.85rem;">
+                      <div class="form-group" style="margin:0;">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" id="img-lat-before" class="form-input" placeholder="e.g. 28.6139" step="any" min="-90" max="90" oninput="onImgCoordInput('before')" />
+                      </div>
+                      <div class="form-group" style="margin:0;">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" id="img-lon-before" class="form-input" placeholder="e.g. 77.2090" step="any" min="-180" max="180" oninput="onImgCoordInput('before')" />
+                      </div>
+                    </div>
+                    <div id="img-coord-error-before" class="error-msg hidden"></div>
+                    <div id="img-map-wrap-before" class="img-map-wrap hidden">
+                      <div class="img-map-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span id="img-place-before" style="font-size:0.8rem;color:var(--accent);">Locating…</span>
+                      </div>
+                      <div id="img-map-before" class="img-map-tile"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="temporal-arrow">↓ AI COMPARISON ↓</div>
+            <div class="glass-card" style="padding:1.5rem;">
+              <div class="temporal-label temporal-after">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                AFTER IMAGE
+              </div>
+              <div class="upload-zone" id="drop-after" style="border-color:rgba(245,158,11,0.3);" ondragover="onDragOver(event,'drop-after')" ondragleave="onDragLeave('drop-after')" ondrop="onDrop(event,'after')">
+                <input type="file" id="file-after" accept=".jpg,.jpeg,.png,.tif,.tiff" onchange="onFileSelect(event,'after')" />
+                <div class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></div>
+                <div class="upload-label">After image</div>
+                <div class="upload-hint">Later observation</div>
+              </div>
+              <div id="preview-after" class="hidden"></div>
+              <div class="grid-2" style="gap:0.75rem;margin-top:1rem;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">After Date</label>
+                  <input type="date" id="after-date" class="form-input" />
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">After Time</label>
+                  <input type="time" id="after-time" class="form-input" />
+                </div>
+              </div>
+              <!-- Optional coords for after image -->
+              <div class="img-coords-toggle" style="margin-top:1.1rem;">
+                <button type="button" class="img-coords-toggle-btn" onclick="toggleImgCoords('after')" id="toggle-coords-after">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+                  Add Location Coordinates <span class="toggle-badge">Optional</span>
+                  <svg class="toggle-chevron" id="chevron-after" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="img-coords-panel hidden" id="coords-panel-after">
+                  <div class="img-coords-inner">
+                    <p class="img-coords-hint">Link the after image to a geographic location.</p>
+                    <div class="grid-2" style="gap:0.85rem;">
+                      <div class="form-group" style="margin:0;">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" id="img-lat-after" class="form-input" placeholder="e.g. 28.6139" step="any" min="-90" max="90" oninput="onImgCoordInput('after')" />
+                      </div>
+                      <div class="form-group" style="margin:0;">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" id="img-lon-after" class="form-input" placeholder="e.g. 77.2090" step="any" min="-180" max="180" oninput="onImgCoordInput('after')" />
+                      </div>
+                    </div>
+                    <div id="img-coord-error-after" class="error-msg hidden"></div>
+                    <div id="img-map-wrap-after" class="img-map-wrap hidden">
+                      <div class="img-map-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span id="img-place-after" style="font-size:0.8rem;color:var(--accent);">Locating…</span>
+                      </div>
+                      <div id="img-map-after" class="img-map-tile"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COORDINATES PANEL -->
+        <div id="coords-input-panel" class="hidden">
+          <div class="glass-card" style="padding:1.5rem;margin-bottom:1rem;">
+            <h4 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">Analyse by Latitude &amp; Longitude</h4>
+            <div class="grid-2" style="gap:1rem;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Latitude <span style="color:var(--text-muted);font-weight:400;text-transform:none;">(−90 to 90)</span></label>
+                <input type="number" id="coord-lat" class="form-input" placeholder="e.g. 28.6139" step="any" min="-90" max="90" />
+                <div class="error-msg hidden" id="lat-error"></div>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Longitude <span style="color:var(--text-muted);font-weight:400;text-transform:none;">(−180 to 180)</span></label>
+                <input type="number" id="coord-lon" class="form-input" placeholder="e.g. 77.2090" step="any" min="-180" max="180" />
+                <div class="error-msg hidden" id="lon-error"></div>
+              </div>
+            </div>
+            <!-- Multitemporal coord dates -->
+            <div id="coord-temporal-dates" class="hidden" style="margin-top:1rem;">
+              <div class="grid-2" style="gap:1rem;margin-bottom:1rem;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Before Date</label>
+                  <input type="date" id="coord-before-date" class="form-input" />
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Before Time (Optional)</label>
+                  <input type="time" id="coord-before-time" class="form-input" />
+                </div>
+              </div>
+              <div class="grid-2" style="gap:1rem;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">After Date</label>
+                  <input type="date" id="coord-after-date" class="form-input" />
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">After Time (Optional)</label>
+                  <input type="time" id="coord-after-time" class="form-input" />
+                </div>
+              </div>
+            </div>
+            <!-- Single/SAR coord dates -->
+            <div id="coord-single-dates" style="margin-top:1rem;">
+              <div class="grid-2" style="gap:1rem;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Date (Optional)</label>
+                  <input type="date" id="coord-date" class="form-input" />
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">Time (Optional)</label>
+                  <input type="time" id="coord-time" class="form-input" />
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="previewCoordinates()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+                Preview Location on Map
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-fetch-sat-img" onclick="fetchSatelliteForCoordinates()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                🛰️ Fetch Satellite Imagery Tile(s)
+              </button>
+            </div>
+            <div id="coord-place" class="hidden" style="margin-top:0.75rem;padding:10px 14px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);border-radius:var(--radius-md);font-size:0.875rem;color:var(--accent);"></div>
+          </div>
+
+          <!-- Real Satellite Imagery Live Preview Container -->
+          <div id="coord-sat-preview-container" class="glass-card hidden" style="padding:1.25rem;margin-bottom:1rem;border:1px solid rgba(0,212,255,0.3);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+              <h5 style="margin:0;font-size:0.88rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;display:flex;align-items:center;gap:6px;">
+                <span>🛰️</span> Fetched Satellite Imagery (Direct Coordinate Acquisition)
+              </h5>
+              <span id="coord-sat-res-badge" class="badge badge-accent" style="font-size:0.72rem;">0.5m GSD · High-Res</span>
+            </div>
+            <div id="coord-sat-preview-body">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Map -->
+          <div class="glass-card" style="padding:1rem;margin-bottom:1rem;">
+            <div id="map-container" style="height:280px;border-radius:var(--radius-md);"></div>
+          </div>
+        </div>
+
+        <!-- NLQ Box -->
+        <div class="nlq-card">
+          <div class="nlq-title" style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg class="nlq-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>NATURAL LANGUAGE QUERY</span>
+            </div>
+            <button type="button" id="voice-btn" class="btn btn-ghost btn-sm" onclick="startVoiceQuery()" title="Speak your query" style="display:flex;align-items:center;gap:6px;border:1px solid rgba(0,212,255,0.3);color:var(--accent);padding:4px 10px;border-radius:20px;">
+              <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+              <span id="mic-label" style="font-size:0.78rem;">Voice Query</span>
+            </button>
+          </div>
+          <p class="nlq-subtitle">Ask questions about land cover, buildings, water, agriculture, change or geographic directions:</p>
+          <div class="nlq-examples">
+            <span class="nlq-example" onclick="setNLQ(this.textContent)">How much agricultural land is present?</span>
+            <span class="nlq-example" onclick="setNLQ(this.textContent)">How many buildings are present?</span>
+            <span class="nlq-example" onclick="setNLQ(this.textContent)">Where are the water bodies?</span>
+            <span class="nlq-example" onclick="setNLQ(this.textContent)">What percentage is agriculture?</span>
+            <span class="nlq-example" onclick="setNLQ(this.textContent)">What is the land cover distribution?</span>
+            <span class="nlq-example" onclick="setNLQ(this.textContent)">Show buildings in the northeast direction.</span>
+            <span class="nlq-example" onclick="setNLQ(this.textContent)">What are the major features in this image?</span>
+            <span class="nlq-example" onclick="setNLQ(this.textContent)">Identify buildings and water bodies using both images.</span>
+          </div>
+          <div class="nlq-input-row" style="position:relative;">
+            <textarea id="nlq-input" class="form-textarea" placeholder="e.g. How much agricultural land is present? or click Voice Query to speak..."></textarea>
+          </div>
+          <div id="voice-status" class="hidden" style="margin-top:6px;font-size:0.8rem;color:var(--accent);display:flex;align-items:center;gap:6px;">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;animation:pulse 1s infinite;"></span>
+            <span>Listening... Please speak your question now</span>
+          </div>
+        </div>
+
+        <!-- Error display -->
+        <div id="analysis-error" class="alert alert-error hidden" style="margin-top:1rem;"></div>
+
+        <!-- Analyze button -->
+        <div style="text-align:center;margin-top:2rem;">
+          <button class="btn btn-analyze" id="analyze-btn" onclick="startAnalysis()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            ANALYZE WITH AGENTIC AI
+          </button>
+        </div>
+      </div>
+
+      <!-- Right sidebar: Info -->
+      <div>
+        <div class="glass-card" style="padding:1.5rem;margin-bottom:1rem;">
+          <p class="section-title">ANALYSIS PIPELINE</p>
+          <div style="margin-top:1rem;display:flex;flex-direction:column;gap:10px;">
+            <div class="flex gap-2" style="align-items:center;font-size:0.85rem;color:var(--text-secondary);">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">1</span>
+              Input Validation
+            </div>
+            <div class="flex gap-2" style="align-items:center;font-size:0.85rem;color:var(--text-secondary);">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">2</span>
+              Image Preprocessing
+            </div>
+            <div class="flex gap-2" style="align-items:center;font-size:0.85rem;color:var(--text-secondary);">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">3</span>
+              Land Cover Analysis
+            </div>
+            <div class="flex gap-2" style="align-items:center;font-size:0.85rem;color:var(--text-secondary);">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">4</span>
+              Feature Detection
+            </div>
+            <div class="flex gap-2" style="align-items:center;font-size:0.85rem;color:var(--text-secondary);">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">5</span>
+              Confidence Estimation
+            </div>
+            <div class="flex gap-2" style="align-items:center;font-size:0.85rem;color:var(--text-secondary);">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">6</span>
+              Report Generation
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:1.5rem;">
+          <p class="section-title">SUPPORTED FORMATS</p>
+          <div style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:6px;">
+            <span class="badge badge-accent">JPG</span>
+            <span class="badge badge-accent">JPEG</span>
+            <span class="badge badge-accent">PNG</span>
+            <span class="badge badge-accent">TIFF</span>
+            <span class="badge badge-accent">GeoTIFF</span>
+          </div>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-top:1rem;">Georeferenced GeoTIFF images enable precise area calculations.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Processing panel -->
+  <div id="processing-panel" class="hidden" style="padding:3rem 0;">
+    <div class="processing-card">
+      <div class="processing-spinner-wrap">
+        <div class="processing-ring"></div>
+        <div class="processing-ring processing-ring-2"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <h3>Agentic AI Processing</h3>
+      <div class="processing-stage" id="current-stage">Initialising pipeline...</div>
+      <div class="progress-bar-track" style="margin:1rem 0;"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="processing-stages-list" id="stages-list"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox hidden" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightboxBtn()">✕</button>
+  <img id="lightbox-img" class="lightbox-img" src="" alt="Enlarged view" />
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPsE=" crossorigin=""></script>
+<script src="/js/language.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/map.js"></script>
+<script src="/js/analysis.js"></script>
+
+<script>
+/* ── Optional image coordinate panels ─────────────────────── */
+const imgMiniMaps = {};          // role → Leaflet map instance
+const imgCoordDebounce = {};     // role → timeout id
+
+function toggleImgCoords(role) {
+  const panel   = document.getElementById(`coords-panel-${role}`);
+  const chevron = document.getElementById(`chevron-${role}`);
+  const open    = panel.classList.toggle('hidden') === false;
+  if (chevron) chevron.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function onImgCoordInput(role) {
+  clearTimeout(imgCoordDebounce[role]);
+  imgCoordDebounce[role] = setTimeout(() => applyImgCoords(role), 600);
+}
+
+async function applyImgCoords(role) {
+  const lat = parseFloat(document.getElementById(`img-lat-${role}`)?.value);
+  const lon = parseFloat(document.getElementById(`img-lon-${role}`)?.value);
+  const errEl  = document.getElementById(`img-coord-error-${role}`);
+  const mapWrap = document.getElementById(`img-map-wrap-${role}`);
+  const placeEl = document.getElementById(`img-place-${role}`);
+
+  if (errEl) errEl.classList.add('hidden');
+
+  if (isNaN(lat) || isNaN(lon)) { if (mapWrap) mapWrap.classList.add('hidden'); return; }
+
+  if (lat < -90 || lat > 90) {
+    if (errEl) { errEl.textContent = 'Latitude must be between −90 and 90.'; errEl.classList.remove('hidden'); } return;
+  }
+  if (lon < -180 || lon > 180) {
+    if (errEl) { errEl.textContent = 'Longitude must be between −180 and 180.'; errEl.classList.remove('hidden'); } return;
+  }
+
+  if (mapWrap) mapWrap.classList.remove('hidden');
+
+  // Reverse geocode
+  if (placeEl) {
+    placeEl.textContent = 'Locating…';
+    try {
+      const r = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+        { headers: { 'User-Agent': 'SATQUERY-AI/1.0' } }
+      );
+      const d = await r.json();
+      const parts = [];
+      const a = d.address || {};
+      for (const k of ['city','town','village','state','country']) {
+        if (a[k] && !parts.includes(a[k])) { parts.push(a[k]); if (parts.length === 3) break; }
+      }
+      placeEl.textContent = '📍 ' + (parts.join(', ') || d.display_name || `${lat.toFixed(4)}°, ${lon.toFixed(4)}°`);
+    } catch (_) {
+      placeEl.textContent = `📍 ${lat.toFixed(4)}°, ${lon.toFixed(4)}°`;
+    }
+  }
+
+  // Render or update mini map
+  const mapEl = document.getElementById(`img-map-${role}`);
+  if (!mapEl) return;
+
+  if (imgMiniMaps[role]) {
+    imgMiniMaps[role].setView([lat, lon], 12);
+    // Update marker
+    if (imgMiniMaps[role]._satMarker) {
+      imgMiniMaps[role]._satMarker.setLatLng([lat, lon]);
+    }
+  } else {
+    const m = L.map(mapEl, { center: [lat, lon], zoom: 12, zoomControl: true, attributionControl: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(m);
+    // Satellite tile layer toggle button
+    const sat = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { attribution: 'Tiles © Esri', maxZoom: 19 }
+    );
+    // Add layer control
+    L.control.layers({ 'Street Map': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }), 'Satellite': sat }).addTo(m);
+    imgMiniMaps[role] = m;
+
+    const marker = L.marker([lat, lon], {
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="width:16px;height:16px;background:linear-gradient(135deg,#00d4ff,#7c3aed);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 0 8px rgba(0,212,255,0.7);"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 16],
+      }),
+    }).addTo(m);
+    marker.bindPopup(`<b>Image Location</b><br>${lat.toFixed(5)}°, ${lon.toFixed(5)}°`);
+    m._satMarker = marker;
+
+    // Slightly delay invalidateSize in case container was hidden
+    setTimeout(() => m.invalidateSize(), 120);
+  }
+
+  // Store coords on the file upload state for submission
+  if (!window.imgCoords) window.imgCoords = {};
+  window.imgCoords[role] = { lat, lon };
+}
+</script>
+</body>
+</html>

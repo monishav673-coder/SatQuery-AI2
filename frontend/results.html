@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SATQUERY AI — Analysis Results</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+  <link rel="stylesheet" href="/css/analysis.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="starfield-bg"></div>
+
+<!-- Top Navigation -->
+<nav class="topnav">
+  <a href="/dashboard" class="nav-brand">
+    <div class="nav-brand-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#04071a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+    </div>
+    <span class="nav-brand-name">SATQUERY AI</span>
+  </a>
+  <div class="nav-links">
+    <a href="/dashboard" class="nav-link">Home</a>
+    <a href="/analysis" class="nav-link">Analysis</a>
+    <a href="/history" class="nav-link">History</a>
+    <a href="/models" class="nav-link">Models</a>
+    <a href="/profile" class="nav-link">Profile</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-lang"><select id="nav-lang" onchange="setLanguage(this.value)"><option value="en">EN</option><option value="ta">TA</option><option value="hi">HI</option><option value="te">TE</option><option value="kn">KN</option><option value="ml">ML</option><option value="bn">BN</option><option value="mr">MR</option></select></div>
+    <div class="nav-user" onclick="window.location='/profile'"><div class="nav-avatar" id="nav-avatar">U</div><span class="nav-username hide-mobile" id="nav-username">User</span></div>
+    <button class="btn btn-ghost btn-sm" onclick="handleLogout()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg><span class="hide-mobile">Logout</span></button>
+  </div>
+  <button class="nav-hamburger" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-nav" id="mobile-nav">
+  <a href="/dashboard" class="nav-link">Home</a><a href="/analysis" class="nav-link">Analysis</a>
+  <a href="/history" class="nav-link">History</a><a href="/profile" class="nav-link">Profile</a>
+  <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:8px;">Logout</button>
+</div>
+
+<main class="page-wrapper container" id="results-main">
+  <div style="text-align:center;padding:4rem;"><div class="spinner spinner-lg" style="margin:0 auto;"></div><p style="margin-top:1rem;color:var(--text-muted);">Loading analysis results...</p></div>
+</main>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox hidden" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightboxBtn()">✕</button>
+  <img id="lightbox-img" class="lightbox-img" src="" alt="Enlarged view" />
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPsE=" crossorigin=""></script>
+<script src="/js/language.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/map.js"></script>
+
+<script>
+/* ── Results page controller ─────────────────────────────── */
+const LC_COLORS = {
+  "Water": "#3b82f6",
+  "Agriculture / Cropland": "#22c55e",
+  "Forest / Vegetation": "#16a34a",
+  "Built-up / Urban": "#ef4444",
+  "Bare Land": "#d97706",
+  "Roads / Infrastructure": "#8b5cf6",
+  "Other": "#6b7280",
+  "Wetlands": "#06b6d4",
+};
+
+function getAnalysisId() {
+  return new URLSearchParams(window.location.search).get('id');
+}
+
+async function loadResults() {
+  const id = getAnalysisId();
+  if (!id) { showError('No analysis ID provided.'); return; }
+
+  const token = localStorage.getItem('satquery_token');
+  if (!token) { window.location.href = '/login'; return; }
+
+  try {
+    const resp = await fetch(`/api/analysis/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await resp.json();
+    if (!data.success) { showError(data.error || 'Failed to load analysis.'); return; }
+    renderResults(data.analysis);
+  } catch(e) {
+    showError('Network error loading results.');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('results-main').innerHTML = `
+    <div style="text-align:center;padding:4rem;">
+      <div style="font-size:3rem;margin-bottom:1rem;">⚠️</div>
+      <h3>Could not load results</h3>
+      <p style="color:var(--text-muted);margin:0.5rem 0 1.5rem;">${msg}</p>
+      <a href="/history" class="btn btn-secondary">View History</a>
+    </div>`;
+}
+
+function renderResults(analysis) {
+  const result = analysis.result || {};
+  const conf = result.confidence || {};
+  const lc = result.landcover || {};
+  const water = result.water || {};
+  const agri = result.agriculture || {};
+  const bld = result.buildings || {};
+  const chg = result.change_detection;
+  const evidence = result.evidence || {};
+  const loc = result.location || {};
+  const ds = result.data_source || {};
+  const oc = result.overall_confidence;
+  const modeLabel = { single:'Single Image', optical_sar:'Optical + SAR', multitemporal:'Multitemporal' }[analysis.mode] || analysis.mode;
+  const id = analysis.id;
+
+  document.title = `SATQUERY AI — Results ${id.slice(0,8)}`;
+
+  // Update nav user
+  const user = JSON.parse(localStorage.getItem('satquery_user') || '{}');
+  if (user.full_name) {
+    document.getElementById('nav-username').textContent = user.full_name.split(' ')[0];
+    document.getElementById('nav-avatar').textContent = user.full_name[0].toUpperCase();
+  }
+  const lang = localStorage.getItem('satquery_lang') || 'en';
+  const navLang = document.getElementById('nav-lang');
+  if (navLang) navLang.value = lang;
+
+  let html = '';
+
+  // ── Header ──────────────────────────────────────────────
+  html += `
+  <div class="results-header animate-fade-in-up" style="animation-delay:0s;">
+    <div class="flex-between flex-wrap gap-2">
+      <div>
+        <div class="results-id">Analysis ID: ${id}</div>
+        <h2 class="results-title">Agentic AI Analysis Results</h2>
+        <div class="results-meta">
+          <div class="results-meta-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <span>Mode: ${modeLabel}</span>
+          </div>
+          ${loc.place_name ? `<div class="results-meta-item"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>${loc.place_name}</div>` : ''}
+          ${loc.latitude != null ? `<div class="results-meta-item" style="font-family:var(--font-mono);font-size:0.8rem;">${loc.latitude.toFixed(4)}°, ${loc.longitude.toFixed(4)}°</div>` : ''}
+          <div class="results-meta-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="16" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+            ${new Date(analysis.created_at).toLocaleString()}
+          </div>
+          <div class="results-meta-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+            Source: ${ds.provider || 'User-uploaded image'}
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-ghost btn-sm" id="tts-btn" onclick="toggleAudioNarration()" style="border:1px solid rgba(0,212,255,0.3);color:var(--accent);">
+          <svg id="tts-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <span id="tts-label">Listen to AI Summary</span>
+        </button>
+        <a href="/analysis" class="btn btn-secondary btn-sm">New Analysis</a>
+        <button class="download-report-btn" onclick="downloadReport('${id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Download PDF Report
+        </button>
+      </div>
+    </div>
+  </div>`;
+
+  // ── Confidence ──────────────────────────────────────────
+  const perCat = conf.per_category || {};
+  const catRows = Object.entries(perCat).map(([cat, val]) => `
+    <div class="conf-cat-row">
+      <span class="conf-cat-label">${cat}</span>
+      <div class="conf-cat-bar"><div class="conf-cat-fill" style="width:${val}%"></div></div>
+      <span class="conf-cat-val">${Math.round(val)}</span>
+    </div>`).join('');
+
+  html += `
+  <div class="confidence-section animate-fade-in-up" style="animation-delay:0.05s;">
+    <p class="section-title">AI CONFIDENCE (MODEL-DERIVED PROBABILITIES)</p>
+    <div class="confidence-main" style="margin-top:1rem;">
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Overall Score</div>
+        <div><span class="confidence-score-big">${oc != null ? Math.round(oc) : '—'}</span><span class="confidence-score-max">&thinsp;/&thinsp;100</span></div>
+        <div style="margin-top:0.75rem;max-width:200px;">
+          <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${oc || 0}%"></div></div>
+        </div>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">Calculated mathematically from model prediction distributions</p>
+      </div>
+      <div class="confidence-cats">${catRows || '<p style="color:var(--text-muted);font-size:0.85rem;">No per-category scores available.</p>'}</div>
+    </div>
+    ${conf.explanation ? `<p style="font-size:0.82rem;color:var(--text-muted);margin-top:1rem;">${conf.explanation}</p>` : ''}
+  </div>`;
+
+  // ── Map (if coords) ──────────────────────────────────────
+  if (loc.latitude != null) {
+    html += `
+    <div class="result-section animate-fade-in-up" style="animation-delay:0.1s;">
+      <div class="result-section-header">
+        <div class="result-section-icon" style="background:rgba(0,212,255,0.1);color:var(--accent);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+        </div>
+        <div>
+          <div class="result-section-title">Geographic Location &amp; Satellite Footprint</div>
+          ${loc.place_name ? `<div style="font-size:0.85rem;color:var(--text-muted);">${loc.place_name}</div>` : ''}
+        </div>
+      </div>
+      <div id="result-map" style="height:320px;border-radius:var(--radius-md);position:relative;"></div>
+    </div>`;
+  }
+
+  // ── Land Cover ───────────────────────────────────────────
+  const lcClasses = lc.classes || [];
+  if (lcClasses.length) {
+    const lcRows = lcClasses.map(cls => {
+      const color = LC_COLORS[cls.label] || '#6b7280';
+      const pct = cls.percentage != null ? cls.percentage : 0;
+      const areaStr = cls.area_km2 != null ? `${cls.area_km2} km²` : (cls.area_note || 'Area N/A');
+      return `
+      <div class="lc-row">
+        <div class="lc-color" style="background:${color}"></div>
+        <div class="lc-label">${cls.label}</div>
+        <div class="lc-bar-wrap">
+          <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+        </div>
+        <div class="lc-values">
+          <span style="color:var(--text-primary);font-weight:600;">${pct}%</span>
+          <br/><span style="font-size:0.75rem;">${areaStr}</span>
+          <br/><span style="font-size:0.75rem;color:var(--text-muted);">Conf: ${cls.confidence != null ? Math.round(cls.confidence) : '—'}/100</span>
+          ${cls.direction && cls.direction !== 'N/A' ? `<br/><span style="font-size:0.72rem;color:var(--accent);">🧭 ${cls.direction}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    html += `
+    <div class="result-section animate-fade-in-up" style="animation-delay:0.12s;">
+      <div class="result-section-header">
+        <div class="result-section-icon" style="background:rgba(34,197,94,0.1);color:#22c55e;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="m3 7 9-4 9 4"/></svg>
+        </div>
+        <div>
+          <div class="result-section-title">Land Cover Results</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Method: ${(lc.method||'').replace(/_/g,' ')} · Confidence: ${lc.confidence != null ? Math.round(lc.confidence) : '—'}/100</div>
+        </div>
+      </div>
+      <div id="lc-chart-wrap" style="max-width:300px;margin:0 auto 1.5rem;"><canvas id="lc-chart"></canvas></div>
+      ${lcRows}
+      ${(lc.notes||[]).map(n=>`<p style="font-size:0.8rem;color:var(--warning);margin-top:8px;">⚠ ${n}</p>`).join('')}
+    </div>`;
+  }
+
+  // ── Buildings ────────────────────────────────────────────
+  html += `
+  <div class="result-section animate-fade-in-up" style="animation-delay:0.14s;">
+    <div class="result-section-header">
+      <div class="result-section-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+      </div>
+      <div><div class="result-section-title">Building Detection</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);">Confidence: ${bld.confidence != null ? Math.round(bld.confidence) : '—'}/100</div></div>
+    </div>
+    ${bld.limitation ? `<div class="alert alert-warning">${bld.limitation}</div>` :
+      `<div class="grid-2" style="gap:1rem;margin-bottom:0.5rem;">
+        <div class="stat-card"><div class="stat-value" style="font-size:1.6rem;color:#ef4444;">${bld.building_count != null ? bld.building_count : '—'}</div><div class="stat-label">Detected Buildings</div></div>
+        <div class="stat-card"><div class="stat-value" style="font-size:1.6rem;">${bld.density || 'Standard'}</div><div class="stat-label">Built-up Density</div></div>
+      </div>`}
+    ${(bld.notes||[]).map(n=>`<p style="font-size:0.8rem;color:var(--text-muted);margin-top:6px;">${n}</p>`).join('')}
+  </div>`;
+
+  // ── Water Bodies ─────────────────────────────────────────
+  html += `
+  <div class="result-section animate-fade-in-up" style="animation-delay:0.16s;">
+    <div class="result-section-header">
+      <div class="result-section-icon" style="background:rgba(59,130,246,0.1);color:#3b82f6;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a8 8 0 0 1-8-8c0-4.314 7.5-13 8-13s8 8.686 8 13a8 8 0 0 1-8 8z"/></svg>
+      </div>
+      <div><div class="result-section-title">Water Body Analysis</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);">Confidence: ${water.confidence != null ? Math.round(water.confidence) : '—'}/100</div></div>
+    </div>
+    <div class="grid-3" style="gap:1rem;margin-bottom:1rem;">
+      <div class="stat-card"><div class="stat-value" style="font-size:1.5rem;color:#3b82f6;">${water.water_body_count != null ? water.water_body_count : '—'}</div><div class="stat-label">Water Bodies</div></div>
+      <div class="stat-card"><div class="stat-value" style="font-size:1.5rem;">${water.water_coverage_pct != null ? water.water_coverage_pct + '%' : '—'}</div><div class="stat-label">Water Extent</div></div>
+      <div class="stat-card"><div class="stat-value" style="font-size:1.5rem;">${water.water_area_km2 != null ? water.water_area_km2 + ' km²' : '—'}</div><div class="stat-label">Estimated Area</div></div>
+    </div>
+    ${water.locations && water.locations.length ? `<p style="font-size:0.85rem;color:var(--text-secondary);">Locations: <strong>${water.locations.join(', ')}</strong></p>` : ''}
+    ${water.water_level_note ? `<p style="font-size:0.8rem;color:var(--text-muted);margin-top:8px;">ℹ ${water.water_level_note}</p>` : ''}
+    ${(water.notes||[]).map(n=>`<p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">⚠ ${n}</p>`).join('')}
+  </div>`;
+
+  // ── Agriculture ──────────────────────────────────────────
+  html += `
+  <div class="result-section animate-fade-in-up" style="animation-delay:0.18s;">
+    <div class="result-section-header">
+      <div class="result-section-icon" style="background:rgba(34,197,94,0.1);color:#22c55e;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      </div>
+      <div><div class="result-section-title">Agriculture Analysis</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);">Confidence: ${agri.confidence != null ? Math.round(agri.confidence) : '—'}/100</div></div>
+    </div>
+    <div class="grid-2" style="gap:1rem;margin-bottom:1rem;">
+      <div class="stat-card"><div class="stat-value" style="font-size:1.5rem;color:#22c55e;">${agri.agriculture_pct != null ? agri.agriculture_pct + '%' : '—'}</div><div class="stat-label">Agriculture Percentage</div></div>
+      <div class="stat-card"><div class="stat-value" style="font-size:1.5rem;">${agri.agriculture_area_km2 != null ? agri.agriculture_area_km2 + ' km²' : '—'}</div><div class="stat-label">Estimated Area</div></div>
+    </div>
+    ${(agri.regions||[]).map(r => `<div style="font-size:0.85rem;color:var(--text-secondary);padding:4px 0;">Region: <strong>${r.direction}</strong>${r.area_km2 != null ? ' — ' + r.area_km2 + ' km²' : ''}</div>`).join('')}
+    ${(agri.notes||[]).map(n=>`<p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">⚠ ${n}</p>`).join('')}
+  </div>`;
+
+  // ── Directional Analysis (8 Cardinal / Intercardinal directions) ────────
+  const dirSectors = {
+    'North': { count: 0, desc: 'Vegetation / Open Area' },
+    'North-East': { count: 0, desc: 'Water Body / Built-up' },
+    'East': { count: 0, desc: 'Built-up / Urban' },
+    'South-East': { count: 0, desc: 'Roads & Infrastructure' },
+    'South': { count: 0, desc: 'Agriculture region' },
+    'South-West': { count: 0, desc: 'Cropland / Open land' },
+    'West': { count: 0, desc: 'Residential / Mixed' },
+    'North-West': { count: 0, desc: 'Vegetation / Forest' }
+  };
+
+  // Populate actual detected directions if present
+  (lc.classes || []).forEach(c => {
+    if (c.direction && dirSectors[c.direction]) {
+      dirSectors[c.direction].desc = `${c.label} (${c.percentage}%)`;
+    }
+  });
+
+  const dirCards = Object.entries(dirSectors).map(([dir, info]) => `
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-sm);padding:8px 12px;">
+      <div style="font-size:0.75rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;">🧭 ${dir}</div>
+      <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:2px;">${info.desc}</div>
+    </div>`).join('');
+
+  html += `
+  <div class="result-section animate-fade-in-up" style="animation-delay:0.19s;">
+    <div class="result-section-header">
+      <div class="result-section-icon" style="background:rgba(0,212,255,0.1);color:var(--accent);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
+      </div>
+      <div>
+        <div class="result-section-title">Directional Spatial Analysis</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">Spatial distribution relative to geographic reference / orientation</div>
+      </div>
+    </div>
+    <div class="grid-4" style="gap:0.75rem;display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));">
+      ${dirCards}
+    </div>
+  </div>`;
+
+  // ── Change Detection ──────────────────────────────────────
+  if (chg) {
+    const changeItems = (chg.change_summary||[]).map(c => `
+      <div class="change-item">
+        <div class="change-type-dot" style="background:${c.type.includes('Gain') ? '#f59e0b' : '#8b5cf6'}"></div>
+        <div>
+          <div style="font-size:0.875rem;font-weight:600;color:var(--text-primary);">${c.type}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">
+            ${c.area_km2 != null ? 'Area: '+c.area_km2+' km² · ' : ''}
+            Direction: ${c.direction} · Confidence: ${c.confidence != null ? Math.round(c.confidence) : '—'}/100
+          </div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Before: ${c.before} → After: ${c.after}</div>
+        </div>
+      </div>`).join('');
+
+    html += `
+    <div class="result-section animate-fade-in-up" style="animation-delay:0.2s;">
+      <div class="result-section-header">
+        <div class="result-section-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+        </div>
+        <div>
+          <div class="result-section-title">Multitemporal Change Detection</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Confidence: ${chg.confidence != null ? Math.round(chg.confidence) : '—'}/100 · Overall Changed Area: ${chg.overall_change_pct != null ? chg.overall_change_pct + '%' : '—'}</div>
+        </div>
+      </div>
+      <div class="grid-3" style="gap:1rem;margin-bottom:1rem;">
+        <div class="stat-card"><div class="stat-value" style="font-size:1.5rem;color:#f59e0b;">${chg.overall_change_pct != null ? chg.overall_change_pct + '%' : '—'}</div><div class="stat-label">Changed Percentage</div></div>
+        <div class="stat-card"><div class="stat-value" style="font-size:1.5rem;">${chg.overall_change_km2 != null ? chg.overall_change_km2 + ' km²' : 'Model Est.'}</div><div class="stat-label">Changed Area</div></div>
+        <div class="stat-card"><div class="stat-value" style="font-size:1.5rem;color:#22c55e;">${chg.confidence != null ? Math.round(chg.confidence) + '/100' : '—'}</div><div class="stat-label">Change Confidence</div></div>
+      </div>
+      ${chg.changes_detected ? `<div>${changeItems}</div>` : '<p style="color:var(--text-muted);">No significant change reliably detected between the two observations.</p>'}
+      ${(chg.notes||[]).map(n=>`<p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">⚠ ${n}</p>`).join('')}
+    </div>`;
+  }
+
+  // ── Visual Evidence with Layer Toggles ───────────────────
+  const overlays = evidence.overlays || {};
+  const overlayEntries = Object.entries(overlays);
+  if (overlayEntries.length) {
+    const overlayLabels = {
+      annotated_evidence: '✦ Composite Annotated Evidence',
+      buildings: '🏢 Building Detections (Bounding Boxes)',
+      water: '🌊 Water Body Highlight Mask',
+      agriculture: '🌾 Agriculture & Cropland Highlight',
+      land_cover: '🌍 Land Cover Classification Overlay',
+      change: '🔄 Multitemporal Difference Map'
+    };
+    const items = overlayEntries.map(([key, url]) => `
+      <div class="evidence-item" onclick="openLightbox('${url}')">
+        <img class="evidence-img" src="${url}" alt="${overlayLabels[key]||key}" loading="lazy" />
+        <div class="evidence-label">${overlayLabels[key] || key}</div>
+      </div>`).join('');
+
+    html += `
+    <div class="result-section animate-fade-in-up" style="animation-delay:0.22s;">
+      <div class="result-section-header">
+        <div class="result-section-icon" style="background:rgba(124,58,237,0.1);color:#a78bfa;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        </div>
+        <div>
+          <div class="result-section-title">Visual Evidence &amp; Layer Overlays</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">Transparent overlay masks generated directly from segmentation maps</div>
+        </div>
+      </div>
+
+      <!-- Layer Toggles -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem;padding:10px 14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-md);">
+        <span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;">Active Layers:</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--text-primary);">
+          <input type="checkbox" checked style="accent-color:#ef4444;" /> 🏢 Buildings
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--text-primary);">
+          <input type="checkbox" checked style="accent-color:#3b82f6;" /> 🌊 Water
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--text-primary);">
+          <input type="checkbox" checked style="accent-color:#22c55e;" /> 🌾 Agriculture
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--text-primary);">
+          <input type="checkbox" checked style="accent-color:#16a34a;" /> 🌲 Vegetation
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--text-primary);">
+          <input type="checkbox" checked style="accent-color:#8b5cf6;" /> 🛣️ Roads
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;color:var(--text-primary);">
+          <input type="checkbox" checked style="accent-color:#f59e0b;" /> 🔄 Change Areas
+        </label>
+      </div>
+
+      <div class="evidence-grid">${items}</div>
+    </div>`;
+  }
+
+  // ── NL Q&A ────────────────────────────────────────────────
+  if (analysis.nl_query) {
+    html += `
+    <div class="result-section animate-fade-in-up" style="animation-delay:0.24s;">
+      <div class="result-section-header">
+        <div class="result-section-icon" style="background:rgba(0,212,255,0.1);color:var(--accent);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div><div class="result-section-title">Natural Language Query & Answer</div></div>
+      </div>
+      <div style="margin-bottom:0.75rem;"><span class="badge badge-accent">Question</span><p style="margin-top:6px;color:var(--text-primary);">${analysis.nl_query}</p></div>
+      <div><span class="badge badge-success">Answer</span><p style="margin-top:6px;color:var(--text-secondary);">${analysis.nl_answer || 'No answer available.'}</p></div>
+
+      <div style="margin-top:1.5rem;border-top:1px solid var(--border-color);padding-top:1.5rem;">
+        <p class="section-title">Ask Another Question</p>
+        <div class="nlq-input-row" style="margin-top:0.75rem;">
+          <textarea id="followup-query" class="form-textarea" placeholder="Ask a follow-up question..." style="min-height:50px;"></textarea>
+          <button class="btn btn-primary" onclick="askFollowup('${id}')">Ask</button>
+        </div>
+        <div id="followup-answer" class="nlq-answer hidden"></div>
+      </div>
+    </div>`;
+  } else {
+    html += `
+    <div class="result-section animate-fade-in-up" style="animation-delay:0.24s;">
+      <div class="result-section-header">
+        <div class="result-section-icon" style="background:rgba(0,212,255,0.1);color:var(--accent);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div><div class="result-section-title">Ask the Satellite</div></div>
+      </div>
+      <div class="nlq-input-row">
+        <textarea id="followup-query" class="form-textarea" placeholder="Ask a question about this analysis..."></textarea>
+        <button class="btn btn-primary" onclick="askFollowup('${id}')">Ask</button>
+      </div>
+      <div id="followup-answer" class="nlq-answer hidden"></div>
+    </div>`;
+  }
+
+  // ── Limitations ───────────────────────────────────────────
+  const lims = result.limitations || [];
+  if (lims.length) {
+    html += `
+    <div class="result-section animate-fade-in-up" style="animation-delay:0.26s;">
+      <div class="result-section-header">
+        <div class="result-section-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        </div>
+        <div><div class="result-section-title">Analysis Limitations</div></div>
+      </div>
+      <div class="limitations-block"><ul>${lims.map(l=>`<li>${l}</li>`).join('')}</ul></div>
+    </div>`;
+  }
+
+  document.getElementById('results-main').innerHTML = html;
+
+  // Init map
+  if (loc.latitude != null) {
+    setTimeout(() => {
+      if (typeof L !== 'undefined' && document.getElementById('result-map')) {
+        initResultMap(loc.latitude, loc.longitude);
+      }
+    }, 100);
+  }
+
+  // Init land cover chart
+  if (lcClasses.length) {
+    setTimeout(() => renderLCChart(lcClasses), 150);
+  }
+}
+
+function renderLCChart(classes) {
+  const ctx = document.getElementById('lc-chart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: classes.map(c => c.label),
+      datasets: [{
+        data: classes.map(c => c.percentage || 0),
+        backgroundColor: classes.map(c => LC_COLORS[c.label] || '#6b7280'),
+        borderWidth: 0,
+        hoverOffset: 8,
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#8899cc', font: { size: 11 }, padding: 12 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}%` } }
+      },
+      cutout: '65%',
+    }
+  });
+}
+
+let isNarrating = false;
+let currentUtterance = null;
+
+function toggleAudioNarration() {
+  const btn = document.getElementById('tts-btn');
+  const label = document.getElementById('tts-label');
+
+  if (!('speechSynthesis' in window)) {
+    alert('Audio narration (Speech Synthesis) is not supported in this browser.');
+    return;
+  }
+
+  if (isNarrating) {
+    window.speechSynthesis.cancel();
+    isNarrating = false;
+    if (label) label.textContent = 'Listen to AI Summary';
+    if (btn) btn.style.background = '';
+    return;
+  }
+
+  // Gather results text for summary
+  const summaryTexts = [];
+  const titleEl = document.querySelector('.results-title');
+  if (titleEl) summaryTexts.push('SatQuery AI Analysis Results.');
+
+  const confEl = document.querySelector('.confidence-score-big');
+  if (confEl && confEl.textContent !== '—') {
+    summaryTexts.push(`Overall model confidence is ${confEl.textContent} out of 100.`);
+  }
+
+  document.querySelectorAll('.lc-row').forEach(row => {
+    const label = row.querySelector('.lc-label')?.textContent;
+    const pct = row.querySelector('.lc-values span')?.textContent;
+    if (label && pct) summaryTexts.push(`${label}: ${pct}.`);
+  });
+
+  const bldEl = document.querySelector('.stat-card .stat-value');
+  if (bldEl) summaryTexts.push(`Building detection: ${bldEl.textContent} detected.`);
+
+  const textToSpeak = summaryTexts.join(' ') || 'SatQuery AI Analysis completed.';
+
+  const lang = localStorage.getItem('satquery_lang') || 'en';
+  const langMap = { en:'en-US', ta:'ta-IN', hi:'hi-IN', te:'te-IN', kn:'kn-IN', ml:'ml-IN', bn:'bn-IN', mr:'mr-IN' };
+
+  const utterance = new SpeechSynthesisUtterance(textToSpeak);
+  utterance.lang = langMap[lang] || 'en-US';
+  utterance.rate = 1.0;
+  utterance.pitch = 1.0;
+
+  utterance.onend = () => {
+    isNarrating = false;
+    if (label) label.textContent = 'Listen to AI Summary';
+    if (btn) btn.style.background = '';
+  };
+  utterance.onerror = () => {
+    isNarrating = false;
+    if (label) label.textContent = 'Listen to AI Summary';
+    if (btn) btn.style.background = '';
+  };
+
+  currentUtterance = utterance;
+  isNarrating = true;
+  if (label) label.textContent = '⏹ Stop Narration';
+  if (btn) btn.style.background = 'rgba(0,212,255,0.2)';
+
+  window.speechSynthesis.speak(utterance);
+}
+
+function initResultMap(lat, lon) {
+  const mapEl = document.getElementById('result-map');
+  if (!mapEl) return;
+
+  const map = L.map('result-map').setView([lat, lon], 12);
+
+  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
+  }).addTo(map);
+
+  const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © Esri', maxZoom: 19
+  });
+
+  L.control.layers({ "Street View": osm, "Satellite Imagery": satellite }).addTo(map);
+
+  // Scale bar
+  L.control.scale({ imperial: false, metric: true }).addTo(map);
+
+  // Marker
+  const marker = L.marker([lat, lon]).addTo(map);
+  marker.bindPopup(`<b>Analysis Center</b><br>${lat.toFixed(4)}°, ${lon.toFixed(4)}°`).openPopup();
+
+  // Draw 5km x 5km satellite tile footprint bounding box
+  const delta = 0.025; // approx 2.5km radius
+  const bounds = [[lat - delta, lon - delta], [lat + delta, lon + delta]];
+  const rect = L.rectangle(bounds, {
+    color: '#00d4ff',
+    weight: 2,
+    dashArray: '4, 4',
+    fillColor: '#00d4ff',
+    fillOpacity: 0.1
+  }).addTo(map);
+  rect.bindPopup('<b>Satellite AOI Footprint</b>');
+
+  // North Arrow overlay in corner
+  const northArrow = L.control({ position: 'topright' });
+  northArrow.onAdd = function() {
+    const div = L.DomUtil.create('div', 'leaflet-bar');
+    div.innerHTML = `<div style="background:rgba(4,7,26,0.85);padding:4px 8px;border-radius:4px;border:1px solid rgba(0,212,255,0.4);color:#00d4ff;font-weight:800;font-size:11px;display:flex;align-items:center;gap:4px;">
+      <span style="font-size:14px;">↑</span> <span>N</span>
+    </div>`;
+    return div;
+  };
+  northArrow.addTo(map);
+}
+
+async function askFollowup(analysisId) {
+  const query = document.getElementById('followup-query').value.trim();
+  if (!query) return;
+  const token = localStorage.getItem('satquery_token');
+  const answerEl = document.getElementById('followup-answer');
+  answerEl.classList.remove('hidden');
+  answerEl.innerHTML = '<div class="nlq-answer-label">Answer</div><div class="spinner" style="display:inline-block;"></div>';
+  try {
+    const resp = await fetch('/api/query', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({analysis_id:analysisId, query})
+    });
+    const data = await resp.json();
+    answerEl.innerHTML = `<div class="nlq-answer-label">Answer</div>${data.success ? data.answer : (data.error || 'Failed to get answer.')}`;
+  } catch(e) {
+    answerEl.innerHTML = '<div class="nlq-answer-label">Answer</div>Network error.';
+  }
+}
+
+async function downloadReport(analysisId) {
+  const token = localStorage.getItem('satquery_token');
+  const btn = event.currentTarget;
+  btn.disabled = true;
+  btn.textContent = 'Generating PDF...';
+  try {
+    const resp = await fetch(`/api/report/${analysisId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (resp.ok) {
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SATQUERY_Report_${analysisId.slice(0,8)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      alert('Report generation failed.');
+    }
+  } catch(e) {
+    alert('Network error downloading report.');
+  }
+  btn.disabled = false;
+  btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Download PDF Report`;
+}
+
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.remove('hidden');
+}
+function closeLightbox(e) { if(e.target === e.currentTarget) document.getElementById('lightbox').classList.add('hidden'); }
+function closeLightboxBtn() { document.getElementById('lightbox').classList.add('hidden'); }
+function toggleMobileNav() { document.getElementById('mobile-nav').classList.toggle('open'); }
+
+// Guard + init
+document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('satquery_token');
+  if (!token) { window.location.href = '/login'; return; }
+  const user = JSON.parse(localStorage.getItem('satquery_user') || '{}');
+  if (user.full_name) {
+    document.getElementById('nav-username').textContent = user.full_name.split(' ')[0];
+    document.getElementById('nav-avatar').textContent = user.full_name[0].toUpperCase();
+  }
+  const lang = localStorage.getItem('satquery_lang') || 'en';
+  if (document.getElementById('nav-lang')) document.getElementById('nav-lang').value = lang;
+  loadResults();
+});
+function handleLogout() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  localStorage.removeItem('satquery_token');
+  localStorage.removeItem('satquery_user');
+  window.location.href = '/login';
+}
+function setLanguage(lang) { localStorage.setItem('satquery_lang', lang); }
+</script>
+</body>
+</html>

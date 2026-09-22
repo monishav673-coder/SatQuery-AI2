@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>SATQUERY AI — Model Status</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/dashboard.css"/>
+  <link rel="stylesheet" href="/css/analysis.css"/>
+</head>
+<body>
+<div class="starfield-bg"></div>
+
+<nav class="topnav">
+  <a href="/dashboard" class="nav-brand">
+    <div class="nav-brand-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#04071a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+    </div>
+    <span class="nav-brand-name">SATQUERY AI</span>
+  </a>
+  <div class="nav-links">
+    <a href="/dashboard" class="nav-link">Home</a>
+    <a href="/analysis" class="nav-link">Analysis</a>
+    <a href="/history" class="nav-link">History</a>
+    <a href="/models" class="nav-link active">Models</a>
+    <a href="/profile" class="nav-link">Profile</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-user" onclick="window.location='/profile'">
+      <div class="nav-avatar" id="nav-avatar">U</div>
+      <span class="nav-username hide-mobile" id="nav-username">User</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="handleLogout()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+      <span class="hide-mobile">Logout</span>
+    </button>
+  </div>
+  <button class="nav-hamburger" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-nav" id="mobile-nav">
+  <a href="/dashboard" class="nav-link">Home</a>
+  <a href="/analysis" class="nav-link">Analysis</a>
+  <a href="/models" class="nav-link active">Models</a>
+  <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:8px;">Logout</button>
+</div>
+
+<main class="page-wrapper container">
+  <div class="page-header animate-fade-in-up">
+    <div>
+      <h2>AI Model Status</h2>
+      <p>Real-time status of all configured ML models and services</p>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="refreshModels()">
+      <svg id="refresh-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+      Refresh
+    </button>
+  </div>
+
+  <!-- System health -->
+  <div class="glass-card animate-fade-in-up" style="padding:1.5rem;margin-bottom:1.5rem;" id="health-card">
+    <p class="section-title">SYSTEM HEALTH</p>
+    <div id="health-content" style="margin-top:1rem;">
+      <div class="spinner" style="margin:0 auto;display:block;"></div>
+    </div>
+  </div>
+
+  <!-- Model grid -->
+  <div class="grid-3 animate-fade-in-up" style="animation-delay:0.1s;" id="models-grid">
+    <!-- Populated by JS -->
+    <div class="glass-card" style="padding:1.5rem;"><div class="spinner" style="margin:0 auto;display:block;"></div></div>
+    <div class="glass-card" style="padding:1.5rem;"><div class="spinner" style="margin:0 auto;display:block;"></div></div>
+    <div class="glass-card" style="padding:1.5rem;"><div class="spinner" style="margin:0 auto;display:block;"></div></div>
+  </div>
+
+  <!-- Config guidance -->
+  <div class="glass-card animate-fade-in-up" style="padding:1.5rem;margin-top:1.5rem;animation-delay:0.2s;">
+    <p class="section-title">CONFIGURATION GUIDE</p>
+    <div style="margin-top:1rem;display:grid;gap:0.75rem;font-size:0.875rem;color:var(--text-secondary);">
+      <div><strong style="color:var(--accent);">BLIP / BLIP VQA</strong> — Set <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">BLIP_ENABLED=true</code> and install <code>transformers torch</code></div>
+      <div><strong style="color:var(--accent);">Grounding DINO</strong> — Set <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">GROUNDING_DINO_ENABLED=true</code>, download weights, set <code>GROUNDING_DINO_WEIGHTS_PATH</code></div>
+      <div><strong style="color:var(--accent);">BigEarthNet</strong> — Set <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">BIGEARTHNET_ENABLED=true</code> + <code>BIGEARTHNET_MODEL_PATH</code></div>
+      <div><strong style="color:var(--accent);">Change Detection</strong> — Set <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">CHANGE_DETECTION_ENABLED=true</code> (image-differencing fallback available without model path)</div>
+      <div><strong style="color:var(--accent);">SAR Analysis</strong> — Set <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">SAR_ANALYSIS_ENABLED=true</code> + <code>SAR_MODEL_PATH</code></div>
+    </div>
+  </div>
+</main>
+
+<script src="/js/language.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+const MODEL_META = {
+  blip:             { label: 'BLIP Captioning',       icon: '🖼️',  task: 'Image Captioning',       identifier: 'Salesforce/blip-image-captioning-base' },
+  blip_vqa:         { label: 'BLIP VQA',              icon: '❓',  task: 'Visual Q&A',              identifier: 'Salesforce/blip-vqa-base' },
+  grounding_dino:   { label: 'Grounding DINO',        icon: '🎯',  task: 'Object Detection',        identifier: 'IDEA-Research/grounding-dino-tiny' },
+  bigearthnet:      { label: 'BigEarthNet Classifier',icon: '🌍',  task: 'Land Cover Classification', identifier: 'BigEarthNet-19-compatible' },
+  change_detection: { label: 'Change Detection',      icon: '🔄',  task: 'Change Detection',        identifier: 'pluggable-change-detection' },
+  sar:              { label: 'SAR Analysis',           icon: '📡',  task: 'SAR / Optical+SAR Fusion', identifier: 'pluggable-sar-optical-model' },
+};
+
+const STATUS_COLORS = {
+  CONFIGURED:      { color: 'var(--success)',  dot: '●', label: 'CONFIGURED' },
+  NOT_CONFIGURED:  { color: 'var(--text-muted)', dot: '○', label: 'NOT CONFIGURED' },
+  FAILED:          { color: 'var(--danger)',   dot: '✕', label: 'FAILED' },
+  LOADING:         { color: 'var(--warning)',  dot: '◉', label: 'LOADING' },
+  UNAVAILABLE:     { color: 'var(--danger)',   dot: '○', label: 'UNAVAILABLE' },
+};
+
+async function refreshModels() {
+  const icon = document.getElementById('refresh-icon');
+  if (icon) icon.style.animation = 'spin 0.7s linear infinite';
+  await Promise.all([loadHealth(), loadModels()]);
+  if (icon) icon.style.animation = '';
+}
+
+async function loadHealth() {
+  const el = document.getElementById('health-content');
+  const token = localStorage.getItem('satquery_token');
+  try {
+    const resp = await fetch('/ready', { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await resp.json();
+    const checks = data.checks || {};
+    el.innerHTML = Object.entries(checks).map(([key, val]) => {
+      if (key === 'ml_models') return '';
+      const ok = typeof val === 'object' ? val.status === 'ok' : val === 'ok';
+      const color = ok ? 'var(--success)' : (val?.status === 'unavailable' ? 'var(--warning)' : 'var(--danger)');
+      const status = typeof val === 'object' ? val.status : val;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <span style="color:${color};font-size:1rem;">${ok ? '●' : '○'}</span>
+        <span style="font-weight:600;text-transform:capitalize;min-width:100px;">${key}</span>
+        <span class="badge ${ok ? 'badge-success' : 'badge-warning'}">${status?.toUpperCase() || 'UNKNOWN'}</span>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<div class="alert alert-error">Could not reach /ready endpoint.</div>`;
+  }
+}
+
+async function loadModels() {
+  const grid = document.getElementById('models-grid');
+  const token = localStorage.getItem('satquery_token');
+  try {
+    const resp = await fetch('/api/models', { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await resp.json();
+    const models = data.models || {};
+
+    grid.innerHTML = Object.entries(MODEL_META).map(([key, meta]) => {
+      const m = models[key] || {};
+      const rawStatus = (m.status && typeof m.status === 'object') ? m.status.value || 'NOT_CONFIGURED' : (m.status || 'NOT_CONFIGURED');
+      const s = STATUS_COLORS[rawStatus] || STATUS_COLORS.NOT_CONFIGURED;
+      const device = m.device && m.device !== '—' ? m.device : null;
+      const errMsg = m.error ? `<p style="font-size:0.78rem;color:var(--text-muted);margin-top:8px;word-break:break-word;">${m.error}</p>` : '';
+      return `
+      <div class="glass-card" style="padding:1.5rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+          <span style="font-size:1.5rem;">${meta.icon}</span>
+          <div>
+            <div style="font-weight:700;font-size:0.95rem;">${meta.label}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">${meta.task}</div>
+          </div>
+          <span style="margin-left:auto;color:${s.color};font-size:1.2rem;" title="${s.label}">${s.dot}</span>
+        </div>
+        <div style="margin-bottom:0.5rem;">
+          <span class="badge" style="background:${rawStatus==='CONFIGURED'?'rgba(34,197,94,0.12)':'rgba(255,255,255,0.06)'};color:${s.color};border:1px solid ${s.color}40;">${s.label}</span>
+          ${device ? `<span class="badge badge-accent" style="margin-left:6px;">Device: ${device}</span>` : ''}
+        </div>
+        <div style="font-size:0.78rem;color:var(--text-muted);font-family:var(--font-mono);">${meta.identifier}</div>
+        ${errMsg}
+      </div>`;
+    }).join('');
+  } catch (e) {
+    grid.innerHTML = `<div class="glass-card" style="padding:1.5rem;"><div class="alert alert-error">Failed to load model status.</div></div>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!localStorage.getItem('satquery_token')) { window.location.href = '/login'; return; }
+  initNavUser();
+  refreshModels();
+  // Auto-refresh every 60s
+  setInterval(refreshModels, 60000);
+});
+function toggleMobileNav() { document.getElementById('mobile-nav')?.classList.toggle('open'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SATQUERY AI — Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+  <link rel="stylesheet" href="/css/analysis.css" />
+</head>
+<body>
+<div class="starfield-bg"></div>
+
+<nav class="topnav">
+  <a href="/dashboard" class="nav-brand">
+    <div class="nav-brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#04071a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg></div>
+    <span class="nav-brand-name">SATQUERY AI</span>
+  </a>
+  <div class="nav-links">
+    <a href="/dashboard" class="nav-link">Home</a>
+    <a href="/analysis" class="nav-link">Analysis</a>
+    <a href="/history" class="nav-link">History</a>
+    <a href="/models" class="nav-link">Models</a>
+    <a href="/profile" class="nav-link active">Profile</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-lang"><select id="nav-lang" onchange="setLanguage(this.value)"><option value="en">EN</option><option value="ta">TA</option><option value="hi">HI</option><option value="te">TE</option><option value="kn">KN</option><option value="ml">ML</option><option value="bn">BN</option><option value="mr">MR</option></select></div>
+    <div class="nav-user"><div class="nav-avatar" id="nav-avatar">U</div><span class="nav-username hide-mobile" id="nav-username">User</span></div>
+    <button class="btn btn-ghost btn-sm" onclick="handleLogout()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg><span class="hide-mobile">Logout</span></button>
+  </div>
+  <button class="nav-hamburger" onclick="toggleMobileNav()"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-nav" id="mobile-nav">
+  <a href="/dashboard" class="nav-link">Home</a><a href="/analysis" class="nav-link">Analysis</a>
+  <a href="/history" class="nav-link">History</a><a href="/profile" class="nav-link active">Profile</a>
+  <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:8px;">Logout</button>
+</div>
+
+<main class="page-wrapper container">
+  <div class="page-header animate-fade-in-up">
+    <div><h2>Profile</h2><p>Manage your account settings</p></div>
+  </div>
+
+  <div class="profile-card animate-fade-in-up" style="animation-delay:0.05s;">
+
+    <!-- Avatar / name section -->
+    <div class="profile-avatar-section">
+      <div class="profile-avatar-big" id="profile-avatar-big">U</div>
+      <div>
+        <div class="profile-name" id="profile-name">Loading...</div>
+        <div class="profile-email" id="profile-email">—</div>
+        <div class="profile-joined" id="profile-joined">Member since —</div>
+      </div>
+      <div style="margin-left:auto;">
+        <div class="stat-card" style="text-align:center;padding:1rem 1.5rem;">
+          <div class="stat-value" id="profile-analyses">—</div>
+          <div class="stat-label">Analyses</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="profile-alerts"></div>
+
+    <!-- Edit profile -->
+    <div class="tabs" style="margin-bottom:1.5rem;">
+      <button class="tab-btn active" onclick="switchTab('info')">Account Info</button>
+      <button class="tab-btn" onclick="switchTab('password')">Change Password</button>
+    </div>
+
+    <!-- Info tab -->
+    <div class="tab-content active" id="tab-info">
+      <form id="profile-form" onsubmit="saveProfile(event)">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="edit-name" class="form-input" placeholder="Your full name" />
+          <div class="error-msg hidden" id="name-error"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="edit-email" class="form-input" disabled style="opacity:0.6;cursor:not-allowed;" />
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Email cannot be changed.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Language</label>
+          <select id="edit-lang" class="form-select">
+            <option value="en">English</option>
+            <option value="ta">தமிழ் (Tamil)</option>
+            <option value="hi">हिंदी (Hindi)</option>
+            <option value="te">తెలుగు (Telugu)</option>
+            <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            <option value="ml">മലയാളം (Malayalam)</option>
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="mr">मराठी (Marathi)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" id="save-profile-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Changes
+        </button>
+      </form>
+    </div>
+
+    <!-- Password tab -->
+    <div class="tab-content" id="tab-password">
+      <form id="password-form" onsubmit="changePassword(event)">
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="current-pw" class="form-input" placeholder="Your current password" />
+            <button type="button" class="password-toggle" onclick="togglePassword('current-pw', this)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="error-msg hidden" id="current-pw-error"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="new-pw" class="form-input" placeholder="New password (min. 8 chars)" />
+            <button type="button" class="password-toggle" onclick="togglePassword('new-pw', this)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="error-msg hidden" id="new-pw-error"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="change-pw-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Update Password
+        </button>
+      </form>
+    </div>
+
+  </div>
+</main>
+
+<script src="/js/language.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+let profileData = {};
+
+function toggleMobileNav() { document.getElementById('mobile-nav').classList.toggle('open'); }
+function handleLogout() { localStorage.removeItem('satquery_token'); localStorage.removeItem('satquery_user'); window.location.href = '/login'; }
+function setLanguage(lang) { localStorage.setItem('satquery_lang', lang); }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='info')||(i===1&&tab==='password')));
+  document.getElementById('tab-info').classList.toggle('active', tab === 'info');
+  document.getElementById('tab-password').classList.toggle('active', tab === 'password');
+}
+
+async function loadProfile() {
+  const token = localStorage.getItem('satquery_token');
+  if (!token) { window.location.href = '/login'; return; }
+  try {
+    const resp = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await resp.json();
+    if (!data.success) { window.location.href = '/login'; return; }
+    const u = data.user;
+    profileData = u;
+    document.getElementById('profile-avatar-big').textContent = u.full_name[0].toUpperCase();
+    document.getElementById('profile-name').textContent = u.full_name;
+    document.getElementById('profile-email').textContent = u.email;
+    document.getElementById('profile-joined').textContent = 'Member since ' + new Date(u.created_at).toLocaleDateString('en-GB', {year:'numeric',month:'long'});
+    document.getElementById('profile-analyses').textContent = u.analysis_count || 0;
+    document.getElementById('edit-name').value = u.full_name;
+    document.getElementById('edit-email').value = u.email;
+    document.getElementById('edit-lang').value = u.preferred_language || 'en';
+    // Nav
+    document.getElementById('nav-avatar').textContent = u.full_name[0].toUpperCase();
+    document.getElementById('nav-username').textContent = u.full_name.split(' ')[0];
+    const lang = u.preferred_language || localStorage.getItem('satquery_lang') || 'en';
+    document.getElementById('nav-lang').value = lang;
+  } catch(e) { window.location.href = '/login'; }
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+  const token = localStorage.getItem('satquery_token');
+  const full_name = document.getElementById('edit-name').value.trim();
+  const preferred_language = document.getElementById('edit-lang').value;
+  document.getElementById('name-error').classList.add('hidden');
+  if (!full_name || full_name.length < 2) {
+    document.getElementById('name-error').textContent = 'Name must be at least 2 characters.';
+    document.getElementById('name-error').classList.remove('hidden'); return;
+  }
+  const btn = document.getElementById('save-profile-btn');
+  setLoading(btn, true, 'Saving...');
+  try {
+    const resp = await fetch('/api/auth/profile', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({full_name, preferred_language})
+    });
+    const data = await resp.json();
+    if (data.success) {
+      localStorage.setItem('satquery_user', JSON.stringify(data.user));
+      localStorage.setItem('satquery_lang', preferred_language);
+      showAlert('success', 'Profile updated successfully.');
+      document.getElementById('profile-name').textContent = data.user.full_name;
+      document.getElementById('nav-username').textContent = data.user.full_name.split(' ')[0];
+      document.getElementById('nav-avatar').textContent = data.user.full_name[0].toUpperCase();
+      document.getElementById('profile-avatar-big').textContent = data.user.full_name[0].toUpperCase();
+    } else {
+      const errs = data.errors || {};
+      if (errs.full_name) { document.getElementById('name-error').textContent = errs.full_name; document.getElementById('name-error').classList.remove('hidden'); }
+      else showAlert('error', data.error || 'Update failed.');
+    }
+  } catch(e) { showAlert('error', 'Network error.'); }
+  setLoading(btn, false, 'Save Changes');
+}
+
+async function changePassword(e) {
+  e.preventDefault();
+  const token = localStorage.getItem('satquery_token');
+  const current_password = document.getElementById('current-pw').value;
+  const new_password = document.getElementById('new-pw').value;
+  ['current-pw-error','new-pw-error'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  if (!current_password) { document.getElementById('current-pw-error').textContent='Required.'; document.getElementById('current-pw-error').classList.remove('hidden'); return; }
+  const err = validatePassword(new_password);
+  if (err) { document.getElementById('new-pw-error').textContent=err; document.getElementById('new-pw-error').classList.remove('hidden'); return; }
+  const btn = document.getElementById('change-pw-btn');
+  setLoading(btn, true, 'Updating...');
+  try {
+    const resp = await fetch('/api/auth/profile', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({current_password, new_password})
+    });
+    const data = await resp.json();
+    if (data.success) {
+      showAlert('success', 'Password updated successfully.');
+      document.getElementById('current-pw').value = '';
+      document.getElementById('new-pw').value = '';
+    } else {
+      const errs = data.errors || {};
+      if (errs.current_password) { document.getElementById('current-pw-error').textContent=errs.current_password; document.getElementById('current-pw-error').classList.remove('hidden'); }
+      if (errs.new_password) { document.getElementById('new-pw-error').textContent=errs.new_password; document.getElementById('new-pw-error').classList.remove('hidden'); }
+      if (!errs.current_password && !errs.new_password) showAlert('error', data.error || 'Update failed.');
+    }
+  } catch(e) { showAlert('error', 'Network error.'); }
+  setLoading(btn, false, 'Update Password');
+}
+
+function showAlert(type, msg) {
+  const el = document.getElementById('profile-alerts');
+  el.innerHTML = `<div class="alert alert-${type}" style="margin-bottom:1rem;">${msg}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, 4000);
+}
+
+document.addEventListener('DOMContentLoaded', loadProfile);
+</script>
+</body>
+</html>

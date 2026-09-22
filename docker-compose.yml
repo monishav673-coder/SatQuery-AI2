@@ -1,0 +1,121 @@
+# ── SATQUERY AI — Development Docker Compose ─────────────────────────────────
+# Usage:
+#   docker compose up --build
+#   docker compose up -d
+#   docker compose logs -f
+#
+# Mounts source code as volumes so changes are reflected without rebuilds.
+# Uses SQLite by default. For PostgreSQL, uncomment the postgres section.
+
+version: "3.9"
+
+services:
+
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis_data:/data
+
+  # ── Backend ──────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: development
+      DEBUG: "true"
+      SECRET_KEY: dev-secret-key-change-in-production
+      JWT_SECRET_KEY: dev-jwt-secret-change-in-production
+      DATABASE_URL: sqlite:////app/backend/database/satquery.db
+      REDIS_URL: redis://redis:6379/0
+      UPLOAD_FOLDER: /app/backend/uploads
+      REPORTS_FOLDER: /app/backend/uploads/reports
+      CORS_ORIGINS: http://localhost:5000,http://127.0.0.1:5000
+      GEOCODING_PROVIDER: nominatim
+      SATELLITE_PROVIDER: none
+      # ML models — disabled by default, enable as needed:
+      BLIP_ENABLED: "false"
+      BLIP_VQA_ENABLED: "false"
+      GROUNDING_DINO_ENABLED: "false"
+      BIGEARTHNET_ENABLED: "false"
+      CHANGE_DETECTION_ENABLED: "true"
+      SAR_ANALYSIS_ENABLED: "false"
+      MODEL_CACHE_DIR: /app/backend/.model_cache
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app/backend
+      - ./ml_service:/app/ml_service
+      - ./frontend:/app/frontend
+      - ./worker:/app/worker
+      - uploads_data:/app/backend/uploads
+      - model_cache:/app/backend/.model_cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  # ── Worker ────────────────────────────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    restart: unless-stopped
+    environment:
+      FLASK_ENV: development
+      SECRET_KEY: dev-secret-key-change-in-production
+      JWT_SECRET_KEY: dev-jwt-secret-change-in-production
+      DATABASE_URL: sqlite:////app/backend/database/satquery.db
+      REDIS_URL: redis://redis:6379/0
+      UPLOAD_FOLDER: /app/backend/uploads
+      REPORTS_FOLDER: /app/backend/uploads/reports
+      CHANGE_DETECTION_ENABLED: "true"
+      MODEL_CACHE_DIR: /app/backend/.model_cache
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app/backend
+      - ./ml_service:/app/ml_service
+      - ./worker:/app/worker
+      - uploads_data:/app/backend/uploads
+      - model_cache:/app/backend/.model_cache
+
+  # ── PostgreSQL (optional — uncomment to use instead of SQLite) ──────────────
+  # postgres:
+  #   image: postgres:16-alpine
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: satquery_db
+  #     POSTGRES_USER: satquery
+  #     POSTGRES_PASSWORD: satquery_dev_password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U satquery -d satquery_db"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+volumes:
+  redis_data:
+  uploads_data:
+  model_cache:
+  # postgres_data:

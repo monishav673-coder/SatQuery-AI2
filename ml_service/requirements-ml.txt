@@ -1,0 +1,32 @@
+# ML service dependencies — install in addition to backend/requirements.txt
+# These are kept separate so the base backend image stays lean.
+
+# ── Deep learning ──────────────────────────────────────────────────────────────
+# CPU-only torch (smaller image). For GPU: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+torch==2.3.0
+torchvision==0.18.0
+
+# ── Hugging Face ──────────────────────────────────────────────────────────────
+transformers==4.41.2
+accelerate==0.30.1
+
+# ── ONNX runtime (CPU) — lighter alternative to torch for inference ────────────
+onnxruntime==1.18.0
+
+# ── Grounding DINO (object detection) ─────────────────────────────────────────
+# Install separately — not on PyPI in all versions:
+#   pip install groundingdino-py
+# Or from source:
+#   pip install git+https://github.com/IDEA-Research/GroundingDINO.git
+# groundingdino-py==0.4.0
+
+# ── Computer vision ────────────────────────────────────────────────────────────
+opencv-python-headless==4.10.0.82
+
+# ── Geospatial ─────────────────────────────────────────────────────────────────
+# rasterio on Linux (no unofficial wheels needed unlike Windows)
+rasterio==1.3.10
+
+# ── Queue (same as worker) ─────────────────────────────────────────────────────
+rq==1.16.2
+redis==5.0.7

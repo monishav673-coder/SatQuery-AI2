@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SATQUERY AI — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+<body>
+<div class="starfield-bg"></div>
+
+<!-- Top Navigation -->
+<nav class="topnav" role="navigation" aria-label="Main navigation">
+  <a href="/dashboard" class="nav-brand">
+    <div class="nav-brand-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#04071a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+    </div>
+    <span class="nav-brand-name">SATQUERY AI</span>
+  </a>
+
+  <div class="nav-links">
+    <a href="/dashboard" class="nav-link active">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+    <a href="/analysis" class="nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      Analysis
+    </a>
+    <a href="/history" class="nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+      History
+    </a>
+    <a href="/models" class="nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+      Models
+    </a>
+    <a href="/profile" class="nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+      Profile
+    </a>
+  </div>
+
+  <div class="nav-right">
+    <div class="nav-lang">
+      <select id="nav-lang" onchange="setLanguage(this.value)" aria-label="Select language">
+        <option value="en">EN</option>
+        <option value="ta">TA</option>
+        <option value="hi">HI</option>
+        <option value="te">TE</option>
+        <option value="kn">KN</option>
+        <option value="ml">ML</option>
+        <option value="bn">BN</option>
+        <option value="mr">MR</option>
+      </select>
+    </div>
+    <div class="nav-user" id="nav-user-btn" onclick="window.location='/profile'">
+      <div class="nav-avatar" id="nav-avatar">U</div>
+      <span class="nav-username hide-mobile" id="nav-username">User</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="padding:6px 12px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+      <span class="hide-mobile">Logout</span>
+    </button>
+  </div>
+
+  <button class="nav-hamburger" onclick="toggleMobileNav()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobile-nav">
+  <a href="/dashboard" class="nav-link active">Home</a>
+  <a href="/analysis" class="nav-link">Analysis</a>
+  <a href="/history" class="nav-link">History</a>
+  <a href="/profile" class="nav-link">Profile</a>
+  <button class="btn btn-ghost btn-sm" onclick="handleLogout()" style="margin-top:8px;justify-content:flex-start;">Logout</button>
+</div>
+
+<main class="page-wrapper container">
+
+  <!-- Earth Visualization & Hero Card -->
+  <div class="earth-hero-container animate-fade-in-up" style="margin-bottom:2rem;">
+    <div class="glass-card earth-hero-card" style="padding:2.5rem;position:relative;overflow:hidden;border:1px solid rgba(0,212,255,0.25);background:radial-gradient(ellipse at 80% 50%, rgba(0,212,255,0.12) 0%, rgba(4,7,26,0.95) 70%);">
+      <!-- Realistic Satellite Earth Visualization with Atmospheric Corona -->
+      <div class="earth-globe-wrapper" id="earth-globe-wrapper">
+        <div class="realistic-earth-globe">
+          <img src="/assets/earth_realistic.png" alt="Realistic Satellite Earth" class="earth-realistic-img" />
+          <div class="earth-atmosphere-corona"></div>
+          <div class="earth-daynight-shadow"></div>
+          <div class="orbit-sat-indicator">
+            <span class="sat-beacon"></span>
+            <span class="sat-label">Sentinel-2B · 786 km</span>
+          </div>
+          <div class="orbit-sat-indicator orbit-sat-2">
+            <span class="sat-beacon" style="background:#a78bfa;box-shadow:0 0 10px #a78bfa;"></span>
+            <span class="sat-label">Sentinel-1A (SAR)</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:relative;z-index:2;max-width:620px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span class="badge badge-accent" style="font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;">● REAL-TIME EARTH OBSERVATION</span>
+          <span id="agent-link-status-badge" class="badge badge-purple" style="font-size:0.75rem;cursor:pointer;" onclick="openAgentModal()">🔗 Training Agent: Standby</span>
+        </div>
+        <h1 style="font-size:2.4rem;font-weight:900;line-height:1.15;margin-bottom:0.75rem;background:linear-gradient(135deg, #ffffff 40%, #00d4ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+          Ask. Analyze. Understand Earth.
+        </h1>
+        <p style="font-size:1.05rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1.5rem;">
+          An Agentic AI assistant for intelligent satellite image analysis. Run multimodal land-cover segmentation, building detection, water extraction, or 2-year multitemporal change detection using coordinates.
+        </p>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+          <a href="/analysis" class="btn btn-primary btn-lg" style="box-shadow:0 0 20px rgba(0,212,255,0.4);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Launch Analysis Console
+          </a>
+          <button class="btn btn-secondary btn-lg" onclick="openAgentModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Connect Training Agent
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-time Telemetry Stats bar -->
+  <div class="stats-bar animate-fade-in-up" style="animation-delay:0.1s">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-total">—</div>
+      <div class="stat-label">Total Analyses</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-completed">—</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-confidence">—</div>
+      <div class="stat-label">Avg Confidence</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value text-accent">0.5m – 10m</div>
+      <div class="stat-label">Multi-res GSD</div>
+    </div>
+  </div>
+
+  <!-- Mode selection -->
+  <div style="max-width:1100px;margin:0 auto;">
+    <p class="section-title" style="text-align:center;margin-bottom:1rem;">SELECT ANALYSIS MODE</p>
+
+    <div class="mode-grid animate-fade-in-up" style="animation-delay:0.2s">
+
+      <!-- Mode 1: Single Image -->
+      <div class="mode-card" onclick="selectMode('single')" role="button" tabindex="0" aria-label="Single Image Analysis">
+        <div class="mode-icon mode-icon-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        </div>
+        <div>
+          <div class="mode-title">MODE 1: SINGLE IMAGE</div>
+          <div class="mode-desc">Analyze one satellite image for land cover, buildings, water bodies, agriculture and other features. Supports Upload or Exact Coordinate fetching.</div>
+        </div>
+        <div class="mode-badge">
+          <span class="badge badge-accent">Image Upload · Lat / Lon Direct Fetch</span>
+        </div>
+      </div>
+
+      <!-- Mode 2: Optical + SAR -->
+      <div class="mode-card" onclick="selectMode('optical_sar')" role="button" tabindex="0" aria-label="Optical and SAR Analysis">
+        <div class="mode-icon mode-icon-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg>
+        </div>
+        <div>
+          <div class="mode-title">MODE 2: OPTICAL + SAR</div>
+          <div class="mode-desc">Combine optical and radar imagery for multimodal analysis with SAR roughness and specular reflection backscatter.</div>
+        </div>
+        <div class="mode-badge">
+          <span class="badge badge-purple">Multimodal · SAR Radar Fusion · Multispectral</span>
+        </div>
+      </div>
+
+      <!-- Mode 3: Multitemporal -->
+      <div class="mode-card" onclick="selectMode('multitemporal')" role="button" tabindex="0" aria-label="Multitemporal Change Detection">
+        <div class="mode-icon mode-icon-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+        </div>
+        <div>
+          <div class="mode-title">MODE 3: MULTITEMPORAL</div>
+          <div class="mode-desc">Compare satellite images from 2 different years/dates (e.g. 2020 vs 2024) of the exact place to detect changes without manual uploads.</div>
+        </div>
+        <div class="mode-badge">
+          <span class="badge badge-warning">2-Year Temporal Delta · Automatic Fetch</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Connect Training Agent Modal -->
+  <div id="agent-modal" class="loading-overlay hidden" style="z-index:9999;">
+    <div class="glass-card" style="max-width:540px;width:100%;padding:2rem;margin:1rem;position:relative;border:1px solid rgba(0,212,255,0.3);">
+      <button onclick="closeAgentModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem;" title="Close">✕</button>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.5rem;">
+        <span style="font-size:1.6rem;">🤖</span>
+        <div>
+          <h3 style="margin:0;font-size:1.25rem;">Connect Training Agent</h3>
+          <p style="margin:0;font-size:0.82rem;color:var(--text-muted);">Link custom model weights, PyTorch checkpoints, HuggingFace repos, or REST inference endpoints</p>
+        </div>
+      </div>
+
+      <div id="agent-modal-alert" class="alert alert-success hidden" style="margin-top:1rem;"></div>
+
+      <div style="margin-top:1.25rem;display:flex;flex-direction:column;gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Agent / Model Name</label>
+          <input type="text" id="agent-name" class="form-input" placeholder="e.g. Sentinel2-ResNet-UNet-v1" value="Custom Satellite Agent v1.0" />
+        </div>
+
+        <div class="grid-2" style="gap:10px;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Agent Type</label>
+            <select id="agent-type" class="form-select" onchange="onAgentTypeChange()">
+              <option value="pytorch_local">PyTorch Local (.pt / .pth)</option>
+              <option value="huggingface">HuggingFace Hub Repo</option>
+              <option value="rest_endpoint">Remote REST Agent Endpoint</option>
+              <option value="onnx">ONNX Runtime Model</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Target Task</label>
+            <select id="agent-task" class="form-select">
+              <option value="landcover">Land Cover Segmentation</option>
+              <option value="buildings">Building Detection</option>
+              <option value="change_detection">Change Detection (2-Year)</option>
+              <option value="sar_fusion">Optical + SAR Radar Fusion</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin:0;" id="agent-weights-group">
+          <label class="form-label">Model Weights Path / Repository ID</label>
+          <input type="text" id="agent-weights-path" class="form-input" placeholder="e.g. models/custom_weights.pt or organization/satellite-model" />
+        </div>
+
+        <div class="form-group hidden" style="margin:0;" id="agent-endpoint-group">
+          <label class="form-label">Inference Endpoint URL</label>
+          <input type="url" id="agent-endpoint-url" class="form-input" placeholder="https://api.my-agent-host.com/v1/predict" />
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:10px;">
+          <button type="button" class="btn btn-secondary btn-full" onclick="testAgentConnection()">
+            ⚡ Test Connection
+          </button>
+          <button type="button" class="btn btn-primary btn-full" onclick="saveAgentConnection()">
+            💾 Connect &amp; Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent analyses -->
+  <div style="max-width:1100px;margin:3rem auto 0;" class="animate-fade-in-up" style="animation-delay:0.3s">
+    <div class="page-header">
+      <div>
+        <h3>Recent Analyses</h3>
+        <p>Your latest satellite intelligence reports</p>
+      </div>
+      <a href="/history" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+
+    <div id="recent-list">
+      <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+        <div class="spinner" style="margin:0 auto 1rem;"></div>
+        Loading recent analyses...
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="/js/language.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+/* ============================================================
+   SATQUERY AI — Login / Register Page Styles
+   ============================================================ */
+
+/* ── Earth background ─────────────────────────────────────── */
+.auth-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 120% 80% at 60% 40%, rgba(0,60,180,0.20) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 10% 90%, rgba(124,58,237,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 35% at 85% 15%, rgba(0,180,255,0.12) 0%, transparent 50%),
+    linear-gradient(175deg, #020818 0%, #050d2a 40%, #080d35 70%, #040716 100%);
+  z-index: -2;
+  overflow: hidden;
+}
+
+/* ── Realistic Earth disc ─────────────────────────────────── */
+.earth-disc {
+  position: absolute;
+  right: -4vw;
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(300px, 46vw, 660px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  /* Deep ocean base */
+  background:
+    /* Atmosphere glow — outer rim */
+    radial-gradient(circle at 50% 50%, transparent 47%, rgba(80,160,255,0.22) 52%, rgba(40,100,220,0.14) 57%, transparent 63%),
+    /* Sunlit hemisphere highlight */
+    radial-gradient(ellipse 55% 60% at 32% 30%, rgba(255,255,220,0.10) 0%, transparent 55%),
+    /* North polar ice cap */
+    radial-gradient(ellipse 50% 25% at 50% 4%,  rgba(230,245,255,0.55) 0%, rgba(200,230,255,0.25) 40%, transparent 70%),
+    /* South polar ice cap */
+    radial-gradient(ellipse 45% 18% at 50% 97%, rgba(225,240,255,0.45) 0%, rgba(190,220,255,0.20) 40%, transparent 70%),
+    /* Amazon / tropical green band */
+    radial-gradient(ellipse 70% 28% at 38% 60%,  rgba(20,120,50,0.55)  0%, rgba(15,90,40,0.25)  50%, transparent 80%),
+    /* Europe / northern landmass */
+    radial-gradient(ellipse 38% 18% at 58% 28%,  rgba(90,140,60,0.45)  0%, rgba(60,100,40,0.20) 50%, transparent 75%),
+    /* Africa continent */
+    radial-gradient(ellipse 32% 42% at 55% 55%,  rgba(170,120,50,0.50) 0%, rgba(130,90,30,0.25) 50%, transparent 78%),
+    /* Sahara / Arabian desert warm band */
+    radial-gradient(ellipse 50% 16% at 56% 43%,  rgba(200,160,70,0.38) 0%, transparent 65%),
+    /* Asia continental mass */
+    radial-gradient(ellipse 45% 22% at 72% 32%,  rgba(100,150,65,0.40) 0%, rgba(140,110,50,0.20) 55%, transparent 80%),
+    /* Pacific Ocean — deep blue */
+    radial-gradient(ellipse 55% 65% at 18% 55%,  rgba(5,40,110,0.60)  0%, rgba(10,60,140,0.35) 55%, transparent 80%),
+    /* Indian Ocean */
+    radial-gradient(ellipse 30% 35% at 62% 68%,  rgba(8,50,120,0.50)  0%, transparent 70%),
+    /* Atlantic Ocean */
+    radial-gradient(ellipse 22% 55% at 36% 50%,  rgba(10,55,130,0.45) 0%, transparent 70%),
+    /* Cloud wisps — mid-latitude */
+    radial-gradient(ellipse 55% 8%  at 42% 38%,  rgba(255,255,255,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 6%  at 65% 65%,  rgba(255,255,255,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 5%  at 25% 72%,  rgba(255,255,255,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 20% 4%  at 80% 22%,  rgba(255,255,255,0.10) 0%, transparent 50%),
+    /* Base ocean gradient */
+    radial-gradient(circle at 40% 40%, #0c2d6e 0%, #081b4e 30%, #051235 55%, #020918 100%);
+
+  /* Outer atmosphere haze + edge shadow */
+  box-shadow:
+    /* inner terminator shadow (dark side) */
+    inset -80px -40px 100px rgba(0,0,0,0.70),
+    /* inner sunlit glow */
+    inset 30px 20px 60px  rgba(255,240,180,0.07),
+    /* outer atmospheric blue glow */
+    0 0  60px 15px rgba(30,100,255,0.22),
+    0 0 120px 30px rgba(10, 60,200,0.14),
+    0 0 200px 60px rgba(5,  30,140,0.08);
+
+  animation: earthSpin 80s linear infinite, orbitPulse 8s ease-in-out infinite;
+  overflow: hidden;
+}
+
+/* Continent texture layer — animated spin overlay */
+.earth-disc::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    /* Extra cloud band detail */
+    radial-gradient(ellipse 75% 12% at 50% 32%, rgba(255,255,255,0.09) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 8%  at 50% 68%, rgba(255,255,255,0.07) 0%, transparent 60%),
+    /* specular highlight from sun */
+    radial-gradient(circle 14% at 30% 25%, rgba(255,255,230,0.20) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Thin atmosphere rim ring */
+.earth-disc::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: transparent;
+  border: 3px solid transparent;
+  box-shadow:
+    0 0 0 1px  rgba(80,160,255,0.18),
+    0 0 0 4px  rgba(40,120,255,0.09),
+    0 0 0 10px rgba(20, 80,220,0.05);
+}
+
+@keyframes earthSpin {
+  from { background-position: 0% 0%; }
+  to   { background-position: 100% 0%; }
+}
+
+/* Orbital rings */
+.orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.orbit-ring-1 {
+  width: 118%; height: 118%;
+  top: -9%; left: -9%;
+  border: 1px solid rgba(0,212,255,0.12);
+  animation: orbitRotate 22s linear infinite;
+}
+.orbit-ring-2 {
+  width: 140%; height: 140%;
+  top: -20%; left: -20%;
+  border: 1px dashed rgba(0,212,255,0.06);
+  animation: orbitRotate 38s linear infinite reverse;
+}
+.orbit-ring-3 {
+  width: 165%; height: 165%;
+  top: -32.5%; left: -32.5%;
+  border: 1px solid rgba(80,160,255,0.04);
+  animation: orbitRotate 55s linear infinite;
+}
+
+/* Satellite dot on inner orbit */
+.orbit-ring-1::after {
+  content: '';
+  position: absolute;
+  width: 7px; height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  top: 50%; left: -3.5px;
+  box-shadow: 0 0 6px 2px rgba(0,212,255,0.8), 0 0 14px 4px rgba(0,212,255,0.35);
+}
+
+/* Second satellite on outer orbit */
+.orbit-ring-2::after {
+  content: '';
+  position: absolute;
+  width: 5px; height: 5px;
+  background: #a78bfa;
+  border-radius: 50%;
+  bottom: 10%; right: 5%;
+  box-shadow: 0 0 6px 2px rgba(124,58,237,0.7), 0 0 12px 3px rgba(124,58,237,0.3);
+}
+
+@keyframes orbitRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Stars */
+.auth-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.7) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px),
+    radial-gradient(circle, rgba(0,212,255,0.6) 1px, transparent 1px);
+  background-size: 250px 250px, 180px 180px, 400px 400px;
+  background-position: 0 0, 90px 90px, 40px 140px;
+  opacity: 0.3;
+}
+
+/* ── Auth page layout ─────────────────────────────────────── */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2rem;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .auth-page { justify-content: center; padding: 1rem; }
+  .earth-disc { display: none; }
+}
+
+/* ── Auth card ────────────────────────────────────────────── */
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  margin-left: clamp(2rem, 8vw, 8rem);
+  padding: 2.5rem;
+  background: rgba(8, 14, 42, 0.80);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0,212,255,0.18);
+  border-radius: 24px;
+  box-shadow:
+    0 24px 64px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(0,212,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  animation: fadeInUp 0.6s ease both;
+}
+
+@media (max-width: 768px) {
+  .auth-card { margin-left: 0; padding: 2rem 1.5rem; }
+}
+
+/* ── Logo / Branding ──────────────────────────────────────── */
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.25rem;
+}
+
+.logo-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, #00d4ff, #7c3aed);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,212,255,0.4);
+  flex-shrink: 0;
+}
+
+.auth-app-name {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auth-subtitle {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  margin-left: 56px;
+  line-height: 1.4;
+}
+
+.auth-heading {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+.auth-heading-sub {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 1.75rem;
+}
+
+/* ── Password toggle ──────────────────────────────────────── */
+.password-wrapper { position: relative; }
+.password-wrapper .form-input { padding-right: 44px; }
+.password-toggle {
+  position: absolute;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  transition: color var(--transition);
+  display: flex;
+  align-items: center;
+}
+.password-toggle:hover { color: var(--accent); }
+
+/* ── Divider with text ────────────────────────────────────── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 1.25rem 0;
+}
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+.auth-divider span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── Auth footer links ────────────────────────────────────── */
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+.auth-footer a { color: var(--accent); font-weight: 600; }
+.auth-footer a:hover { color: #fff; }
+
+/* ── Language selector ────────────────────────────────────── */
+.lang-bar {
+  position: absolute;
+  top: 1.5rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lang-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 100px;
+  padding: 6px 14px;
+}
+
+.lang-select-wrapper select {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+  padding-right: 4px;
+}
+
+/* ── Forgot password link ─────────────────────────────────── */
+.forgot-link {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  transition: color var(--transition);
+  float: right;
+  margin-top: -4px;
+  margin-bottom: 8px;
+}
+.forgot-link:hover { color: var(--accent); }
+
+/* ── Password strength ────────────────────────────────────── */
+.pw-strength {
+  margin-top: 6px;
+}
+.pw-strength-bar {
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.pw-strength-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+.pw-strength-text {
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+.pw-weak   .pw-strength-fill { width: 25%; background: var(--danger); }
+.pw-fair   .pw-strength-fill { width: 50%; background: var(--warning); }
+.pw-good   .pw-strength-fill { width: 75%; background: #3b82f6; }
+.pw-strong .pw-strength-fill { width: 100%; background: var(--success); }

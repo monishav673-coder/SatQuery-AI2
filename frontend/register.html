@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SATQUERY AI — Create Account</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/login.css" />
+</head>
+<body>
+
+<div class="auth-bg">
+  <div class="earth-disc">
+    <div class="orbit-ring orbit-ring-1"></div>
+    <div class="orbit-ring orbit-ring-2"></div>
+    <div class="orbit-ring orbit-ring-3"></div>
+  </div>
+</div>
+
+<!-- Language bar -->
+<div class="lang-bar">
+  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+  <div class="lang-select-wrapper">
+    <select id="lang-select" onchange="setLanguage(this.value)">
+      <option value="en">English</option>
+      <option value="ta">தமிழ் (Tamil)</option>
+      <option value="hi">हिंदी (Hindi)</option>
+      <option value="te">తెలుగు (Telugu)</option>
+      <option value="kn">ಕನ್ನಡ (Kannada)</option>
+      <option value="ml">മലയാളം (Malayalam)</option>
+      <option value="bn">বাংলা (Bengali)</option>
+      <option value="mr">मराठी (Marathi)</option>
+    </select>
+  </div>
+</div>
+
+<main class="auth-page" style="padding:1.5rem 2rem;">
+  <div class="auth-card animate-fade-in-up" style="max-width:480px;">
+
+    <div class="auth-logo">
+      <div class="logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#04071a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+      </div>
+      <span class="auth-app-name">SATQUERY AI</span>
+    </div>
+    <p class="auth-subtitle">Agentic AI for Multimodal Satellite Image Analysis</p>
+
+    <h2 class="auth-heading">Create your account</h2>
+    <p class="auth-heading-sub">Start analysing satellite imagery in minutes</p>
+
+    <div id="reg-error" class="alert alert-error hidden"></div>
+    <div id="reg-success" class="alert alert-success hidden"></div>
+
+    <form id="register-form" novalidate autocomplete="off">
+
+      <!-- Full Name -->
+      <div class="form-group">
+        <label class="form-label" for="full_name">Full Name</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          <input type="text" id="full_name" name="full_name" class="form-input" placeholder="Your full name" required />
+        </div>
+        <div class="error-msg hidden" id="full_name-error"></div>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label" for="reg_email">Email Address</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          <input type="email" id="reg_email" name="email" class="form-input" placeholder="you@example.com" required />
+        </div>
+        <div class="error-msg hidden" id="reg_email-error"></div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label class="form-label" for="reg_password">Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="reg_password" name="password" class="form-input"
+            placeholder="Min. 8 characters" required oninput="checkPasswordStrength(this.value)" />
+          <button type="button" class="password-toggle" onclick="togglePassword('reg_password', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="pw-strength" id="pw-strength-wrap" style="display:none;">
+          <div class="pw-strength-bar"><div class="pw-strength-fill" id="pw-strength-fill"></div></div>
+          <span class="pw-strength-text" id="pw-strength-text"></span>
+        </div>
+        <div class="error-msg hidden" id="reg_password-error"></div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label class="form-label" for="confirm_password">Confirm Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="Re-enter your password" required />
+          <button type="button" class="password-toggle" onclick="togglePassword('confirm_password', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="error-msg hidden" id="confirm_password-error"></div>
+      </div>
+
+      <!-- Preferred Language -->
+      <div class="form-group">
+        <label class="form-label" for="reg_lang">Preferred Language</label>
+        <select id="reg_lang" name="preferred_language" class="form-select">
+          <option value="en">English</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="hi">हिंदी (Hindi)</option>
+          <option value="te">తెలుగు (Telugu)</option>
+          <option value="kn">ಕನ್ನಡ (Kannada)</option>
+          <option value="ml">മലയാളം (Malayalam)</option>
+          <option value="bn">বাংলা (Bengali)</option>
+          <option value="mr">मराठी (Marathi)</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full btn-lg" id="reg-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+        Create Account
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Sign in</a>
+    </div>
+
+  </div>
+</main>
+
+<script src="/js/language.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+  const savedLang = localStorage.getItem('satquery_lang') || 'en';
+  document.getElementById('lang-select').value = savedLang;
+  document.getElementById('reg_lang').value = savedLang;
+
+  document.getElementById('register-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    clearRegErrors();
+
+    const full_name = document.getElementById('full_name').value.trim();
+    const email = document.getElementById('reg_email').value.trim();
+    const password = document.getElementById('reg_password').value;
+    const confirm_password = document.getElementById('confirm_password').value;
+    const preferred_language = document.getElementById('reg_lang').value;
+    let valid = true;
+
+    if (!full_name || full_name.length < 2) {
+      showRegError('full_name-error', 'Full name must be at least 2 characters.'); valid = false;
+      document.getElementById('full_name').classList.add('input-error');
+    }
+    if (!email || !isValidEmail(email)) {
+      showRegError('reg_email-error', 'Please enter a valid email address.'); valid = false;
+      document.getElementById('reg_email').classList.add('input-error');
+    }
+    const pwErr = validatePassword(password);
+    if (pwErr) {
+      showRegError('reg_password-error', pwErr); valid = false;
+      document.getElementById('reg_password').classList.add('input-error');
+    }
+    if (!confirm_password) {
+      showRegError('confirm_password-error', 'Please confirm your password.'); valid = false;
+      document.getElementById('confirm_password').classList.add('input-error');
+    } else if (password !== confirm_password) {
+      showRegError('confirm_password-error', 'Passwords do not match.'); valid = false;
+      document.getElementById('confirm_password').classList.add('input-error');
+    }
+    if (!valid) return;
+
+    const btn = document.getElementById('reg-btn');
+    setLoading(btn, true, 'Creating account...');
+
+    const result = await apiRegister({ full_name, email, password, confirm_password, preferred_language });
+    setLoading(btn, false, 'Create Account');
+
+    if (result.success) {
+      document.getElementById('reg-success').textContent = 'Account created! Redirecting to login...';
+      document.getElementById('reg-success').classList.remove('hidden');
+      document.getElementById('register-form').style.opacity = '0.5';
+      document.getElementById('register-form').style.pointerEvents = 'none';
+      setTimeout(() => { window.location.href = '/login'; }, 2000);
+    } else {
+      const errs = result.errors || {};
+      if (errs.full_name)        showRegError('full_name-error', errs.full_name);
+      if (errs.email)            showRegError('reg_email-error', errs.email);
+      if (errs.password)         showRegError('reg_password-error', errs.password);
+      if (errs.confirm_password) showRegError('confirm_password-error', errs.confirm_password);
+      const general = errs.general || result.error;
+      if (general) {
+        document.getElementById('reg-error').textContent = general;
+        document.getElementById('reg-error').classList.remove('hidden');
+      }
+    }
+  });
+
+  function clearRegErrors() {
+    ['reg-error','reg-success'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    ['full_name-error','reg_email-error','reg_password-error','confirm_password-error'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
+    ['full_name','reg_email','reg_password','confirm_password'].forEach(id => {
+      document.getElementById(id).classList.remove('input-error');
+    });
+  }
+  function showRegError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.classList.remove('hidden');
+  }
+  function checkPasswordStrength(pw) {
+    const wrap = document.getElementById('pw-strength-wrap');
+    const fill = document.getElementById('pw-strength-fill');
+    const text = document.getElementById('pw-strength-text');
+    wrap.style.display = 'block';
+    const strength = getPasswordStrength(pw);
+    fill.className = 'pw-strength-fill';
+    wrap.className = 'pw-strength';
+    if (strength === 0) { wrap.classList.add('pw-weak');   text.textContent = 'Weak';   text.style.color = 'var(--danger)';  }
+    else if (strength === 1) { wrap.classList.add('pw-fair');   text.textContent = 'Fair';   text.style.color = 'var(--warning)'; }
+    else if (strength === 2) { wrap.classList.add('pw-good');   text.textContent = 'Good';   text.style.color = '#3b82f6'; }
+    else { wrap.classList.add('pw-strong'); text.textContent = 'Strong'; text.style.color = 'var(--success)'; }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SATQUERY AI — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/login.css" />
+</head>
+<body>
+
+<div class="auth-bg">
+  <div class="earth-disc">
+    <div class="orbit-ring orbit-ring-1"></div>
+    <div class="orbit-ring orbit-ring-2"></div>
+    <div class="orbit-ring orbit-ring-3"></div>
+  </div>
+</div>
+<!-- Three.js 3D Earth (progressive enhancement — pure CSS earth shown if WebGL unavailable) -->
+<canvas id="earth-canvas" style="position:fixed;inset:0;z-index:-1;pointer-events:none;"></canvas>
+
+<!-- Language bar -->
+<div class="lang-bar">
+  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+  <div class="lang-select-wrapper">
+    <select id="lang-select" onchange="setLanguage(this.value)">
+      <option value="en">English</option>
+      <option value="ta">தமிழ் (Tamil)</option>
+      <option value="hi">हिंदी (Hindi)</option>
+      <option value="te">తెలుగు (Telugu)</option>
+      <option value="kn">ಕನ್ನಡ (Kannada)</option>
+      <option value="ml">മലയാളം (Malayalam)</option>
+      <option value="bn">বাংলা (Bengali)</option>
+      <option value="mr">मराठी (Marathi)</option>
+    </select>
+  </div>
+</div>
+
+<main class="auth-page">
+  <div class="auth-card animate-fade-in-up">
+
+    <!-- Branding -->
+    <div class="auth-logo">
+      <div class="logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#04071a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+      </div>
+      <span class="auth-app-name">SATQUERY AI</span>
+    </div>
+    <p class="auth-subtitle" data-i18n="subtitle">Agentic AI for Multimodal Satellite Image Analysis</p>
+
+    <h2 class="auth-heading" data-i18n="login_heading">Welcome back</h2>
+    <p class="auth-heading-sub" data-i18n="login_sub">Sign in to your account</p>
+
+    <!-- Error alert -->
+    <div id="login-error" class="alert alert-error hidden" role="alert"></div>
+
+    <form id="login-form" novalidate autocomplete="on">
+
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label" for="email" data-i18n="email_label">Email Address</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          <input type="email" id="email" name="email" class="form-input"
+            placeholder="you@example.com" autocomplete="email" required />
+        </div>
+        <div class="error-msg hidden" id="email-error"></div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <label class="form-label" for="password" style="margin-bottom:0" data-i18n="password_label">Password</label>
+          <a href="#" class="forgot-link" id="forgot-link" onclick="showForgotModal(event)" data-i18n="forgot_password">Forgot password?</a>
+        </div>
+        <div class="password-wrapper">
+          <input type="password" id="password" name="password" class="form-input"
+            placeholder="••••••••" autocomplete="current-password" required />
+          <button type="button" class="password-toggle" onclick="togglePassword('password', this)" aria-label="Toggle password visibility">
+            <svg id="eye-icon-pw" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="error-msg hidden" id="password-error"></div>
+      </div>
+
+      <!-- Remember session -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;font-size:0.875rem;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text-secondary);">
+          <input type="checkbox" id="remember-me" name="remember" checked style="accent-color:var(--accent);width:16px;height:16px;border-radius:4px;" />
+          <span data-i18n="remember_session">Remember session</span>
+        </label>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="btn btn-primary btn-full btn-lg" id="login-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+        <span data-i18n="login_btn">LOGIN</span>
+      </button>
+    </form>
+
+    <div class="auth-divider"><span data-i18n="or_text">or</span></div>
+
+    <a href="/register" class="btn btn-secondary btn-full">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+      <span data-i18n="create_account">Create Account</span>
+    </a>
+
+  </div>
+</main>
+
+<!-- Forgot Password Modal — 3-step: send OTP → verify → reset password -->
+<div id="forgot-modal" class="loading-overlay hidden" style="z-index:8000;">
+  <div class="glass-card" style="max-width:420px;width:100%;padding:2rem;margin:1rem;position:relative;">
+    <button onclick="closeForgotModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;" title="Close">✕</button>
+    <h3 style="margin-bottom:0.35rem;">Reset Password</h3>
+    <div id="forgot-success" class="alert alert-success hidden" style="margin-top:0.75rem;"></div>
+    <div id="forgot-error"   class="alert alert-error   hidden" style="margin-top:0.75rem;"></div>
+
+    <!-- Step 1: email + mobile -->
+    <div id="forgot-step1">
+      <p style="font-size:0.875rem;color:var(--text-muted);margin:0.5rem 0 1.25rem;">Enter your registered email and mobile number to receive an OTP.</p>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" id="forgot-email" class="form-input" placeholder="your@email.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mobile Number <span style="font-weight:400;color:var(--text-muted);">(with country code, e.g. +919876543210)</span></label>
+        <input type="tel" id="forgot-mobile" class="form-input" placeholder="+919876543210" />
+      </div>
+      <div style="display:flex;gap:10px;margin-top:0.5rem;">
+        <button onclick="closeForgotModal()" class="btn btn-ghost btn-full">Cancel</button>
+        <button onclick="submitForgot()" class="btn btn-primary btn-full">Send OTP</button>
+      </div>
+    </div>
+
+    <!-- Step 2: enter OTP -->
+    <div id="forgot-step2" style="display:none;">
+      <p style="font-size:0.875rem;color:var(--text-muted);margin:0.5rem 0 0.5rem;" id="otp-info">An OTP has been sent to your mobile number. Enter it below.</p>
+      <div class="form-group" style="margin-top:1rem;">
+        <label class="form-label">One-Time Password (OTP)</label>
+        <input type="text" id="forgot-otp" class="form-input" placeholder="Enter 6-digit OTP" maxlength="8" style="letter-spacing:0.2em;font-family:var(--font-mono);font-size:1.1rem;" />
+      </div>
+      <div style="display:flex;gap:10px;margin-top:0.5rem;">
+        <button onclick="closeForgotModal()" class="btn btn-ghost btn-full">Cancel</button>
+        <button onclick="verifyOtp()" class="btn btn-primary btn-full">Verify OTP</button>
+      </div>
+    </div>
+
+    <!-- Step 3: new password -->
+    <div id="forgot-step3" style="display:none;">
+      <p style="font-size:0.875rem;color:var(--text-muted);margin:0.5rem 0 1rem;">OTP verified. Set your new password.</p>
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="forgot-newpw" class="form-input" placeholder="Min. 8 chars, include a number" />
+          <button type="button" class="password-toggle" onclick="togglePassword('forgot-newpw', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:0.5rem;">
+        <button onclick="closeForgotModal()" class="btn btn-ghost btn-full">Cancel</button>
+        <button onclick="resetPw()" class="btn btn-primary btn-full">Reset Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/language.js"></script>
+<script src="/js/auth.js"></script>
+<!-- Three.js 3D Earth — lazy loaded, pure CSS earth is the fallback -->
+<script type="module">
+(async () => {
+  const canvas = document.getElementById('earth-canvas');
+  if (!canvas) return;
+  try {
+    const THREE = await import('https://unpkg.com/three@0.165.0/build/three.module.js');
+    const W = window.innerWidth, H = window.innerHeight;
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 1000);
+    camera.position.z = 2.8;
+
+    // Stars
+    const starGeo  = new THREE.BufferGeometry();
+    const starCount = 2000;
+    const starPos   = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount * 3; i++) starPos[i] = (Math.random() - 0.5) * 200;
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, sizeAttenuation: true })));
+
+    // Earth sphere
+    const earthGeo = new THREE.SphereGeometry(1, 64, 64);
+    const earthMat = new THREE.MeshPhongMaterial({
+      color:     0x1a3a6e,
+      emissive:  0x051020,
+      specular:  0x334477,
+      shininess: 15,
+    });
+    const earth = new THREE.Mesh(earthGeo, earthMat);
+    scene.add(earth);
+
+    // Atmosphere glow
+    const atmGeo = new THREE.SphereGeometry(1.03, 64, 64);
+    const atmMat = new THREE.MeshPhongMaterial({
+      color:       0x4488ff,
+      transparent: true,
+      opacity:     0.12,
+      side:        THREE.FrontSide,
+    });
+    scene.add(new THREE.Mesh(atmGeo, atmMat));
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0x223355, 0.8));
+    const sun = new THREE.DirectionalLight(0xffeedd, 1.2);
+    sun.position.set(5, 2, 3);
+    scene.add(sun);
+
+    // Satellite orbit ring
+    const orbitGeo = new THREE.TorusGeometry(1.6, 0.005, 8, 120);
+    const orbitMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.35 });
+    const orbitRing = new THREE.Mesh(orbitGeo, orbitMat);
+    orbitRing.rotation.x = Math.PI / 4;
+    scene.add(orbitRing);
+
+    // Satellite dot
+    const satGeo = new THREE.SphereGeometry(0.025, 8, 8);
+    const satMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff });
+    const sat = new THREE.Mesh(satGeo, satMat);
+    scene.add(sat);
+
+    // Position earth to right side
+    earth.position.x = W > 900 ? 1.8 : 0;
+    orbitRing.position.x = earth.position.x;
+    sat.position.x = earth.position.x;
+
+    // Hide CSS earth when Three.js loads
+    const cssEarth = document.querySelector('.earth-disc');
+    if (cssEarth) cssEarth.style.opacity = '0';
+
+    let t = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      t += 0.006;
+      earth.rotation.y = t * 0.18;
+      // Satellite orbit
+      sat.position.x = earth.position.x + 1.6 * Math.cos(t);
+      sat.position.y = 1.6 * Math.sin(t) * Math.sin(Math.PI / 4);
+      sat.position.z = 1.6 * Math.sin(t) * Math.cos(Math.PI / 4);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      const nW = window.innerWidth, nH = window.innerHeight;
+      camera.aspect = nW / nH;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nW, nH);
+    });
+  } catch (e) {
+    // WebGL unavailable — CSS earth fallback is already visible
+    console.info('3D Earth unavailable, using CSS fallback:', e.message);
+  }
+})();
+</script>
+<script>
+  // Init language on load
+  const savedLang = localStorage.getItem('satquery_lang') || 'en';
+  document.getElementById('lang-select').value = savedLang;
+  setLanguage(savedLang, false);
+
+  // Login form
+  document.getElementById('login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    clearErrors();
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    let valid = true;
+
+    if (!email || !isValidEmail(email)) {
+      showFieldError('email-error', 'Please enter a valid email address.');
+      document.getElementById('email').classList.add('input-error');
+      valid = false;
+    }
+    if (!password) {
+      showFieldError('password-error', 'Password is required.');
+      document.getElementById('password').classList.add('input-error');
+      valid = false;
+    }
+    if (!valid) return;
+
+    const btn = document.getElementById('login-btn');
+    setLoading(btn, true, 'Signing in...');
+
+    const result = await apiLogin(email, password);
+    setLoading(btn, false, '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg> Sign In');
+
+    if (result.success) {
+      window.location.href = '/dashboard';
+    } else {
+      const errs = result.errors || {};
+      const msg = errs.general || errs.email || errs.password || result.error || 'Login failed.';
+      document.getElementById('login-error').textContent = msg;
+      document.getElementById('login-error').classList.remove('hidden');
+    }
+  });
+
+  function clearErrors() {
+    document.getElementById('login-error').classList.add('hidden');
+    ['email-error','password-error'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
+    ['email','password'].forEach(id => {
+      document.getElementById(id).classList.remove('input-error');
+    });
+  }
+
+  function showFieldError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.classList.remove('hidden');
+  }
+
+  function showForgotModal(e) {
+    e.preventDefault();
+    document.getElementById('forgot-modal').classList.remove('hidden');
+  }
+  function closeForgotModal() {
+    document.getElementById('forgot-modal').classList.add('hidden');
+    document.getElementById('forgot-success').classList.add('hidden');
+    document.getElementById('forgot-error').classList.add('hidden');
+    document.getElementById('forgot-step1').style.display='block';
+    document.getElementById('forgot-step2').style.display='none';
+    document.getElementById('forgot-step3').style.display='none';
+    _otpRequestId = null; _resetToken = null;
+  }
+  let _otpRequestId = null, _resetToken = null;
+
+  async function submitForgot() {
+    const email  = document.getElementById('forgot-email').value.trim();
+    const mobile = document.getElementById('forgot-mobile').value.trim();
+    const errEl  = document.getElementById('forgot-error');
+    errEl.classList.add('hidden');
+    if (!email || !isValidEmail(email)) { errEl.textContent='Enter a valid email address.'; errEl.classList.remove('hidden'); return; }
+    if (!mobile) { errEl.textContent='Enter your registered mobile number.'; errEl.classList.remove('hidden'); return; }
+    const btn = document.querySelector('#forgot-step1 button.btn-primary');
+    if (btn) setLoading(btn, true, 'Sending OTP…');
+    try {
+      const resp = await fetch('/api/auth/forgot-password', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({email, mobile})
+      });
+      const data = await resp.json();
+      if (btn) setLoading(btn, false, 'Send OTP');
+      if (data.success || resp.status === 200) {
+        _otpRequestId = data.otp_request_id || null;
+        document.getElementById('forgot-step1').style.display='none';
+        document.getElementById('forgot-step2').style.display='block';
+        if (!_otpRequestId) {
+          // Provider not configured — show informational message
+          document.getElementById('otp-info').textContent = data.message || 'Check your mobile for the OTP.';
+        }
+      } else {
+        errEl.textContent = (data.errors&&Object.values(data.errors)[0]) || data.error || 'Failed to send OTP.';
+        errEl.classList.remove('hidden');
+      }
+    } catch(e) {
+      if (btn) setLoading(btn, false, 'Send OTP');
+      errEl.textContent='Network error. Please check your connection.'; errEl.classList.remove('hidden');
+    }
+  }
+
+  async function verifyOtp() {
+    const otp    = document.getElementById('forgot-otp').value.trim();
+    const errEl  = document.getElementById('forgot-error');
+    errEl.classList.add('hidden');
+    if (!otp || otp.length < 4) { errEl.textContent='Enter the OTP sent to your mobile.'; errEl.classList.remove('hidden'); return; }
+    const btn = document.querySelector('#forgot-step2 button.btn-primary');
+    if (btn) setLoading(btn, true, 'Verifying…');
+    try {
+      const resp = await fetch('/api/auth/verify-otp', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({otp_request_id: _otpRequestId, otp})
+      });
+      const data = await resp.json();
+      if (btn) setLoading(btn, false, 'Verify OTP');
+      if (data.success) {
+        _resetToken = data.reset_token;
+        _otpRequestId = data.otp_request_id;
+        document.getElementById('forgot-step2').style.display='none';
+        document.getElementById('forgot-step3').style.display='block';
+      } else {
+        errEl.textContent = data.error || 'Incorrect OTP.';
+        errEl.classList.remove('hidden');
+      }
+    } catch(e) {
+      if (btn) setLoading(btn, false, 'Verify OTP');
+      errEl.textContent='Network error.'; errEl.classList.remove('hidden');
+    }
+  }
+
+  async function resetPw() {
+    const newPw  = document.getElementById('forgot-newpw').value;
+    const errEl  = document.getElementById('forgot-error');
+    errEl.classList.add('hidden');
+    const pwErr  = validatePassword(newPw);
+    if (pwErr) { errEl.textContent=pwErr; errEl.classList.remove('hidden'); return; }
+    const btn = document.querySelector('#forgot-step3 button.btn-primary');
+    if (btn) setLoading(btn, true, 'Resetting…');
+    try {
+      const resp = await fetch('/api/auth/reset-password', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({otp_request_id: _otpRequestId, reset_token: _resetToken, new_password: newPw})
+      });
+      const data = await resp.json();
+      if (btn) setLoading(btn, false, 'Reset Password');
+      if (data.success) {
+        document.getElementById('forgot-success').textContent = 'Password reset successfully. Please log in with your new password.';
+        document.getElementById('forgot-success').classList.remove('hidden');
+        document.getElementById('forgot-step3').style.display='none';
+      } else {
+        errEl.textContent = data.error || 'Password reset failed.';
+        errEl.classList.remove('hidden');
+      }
+    } catch(e) {
+      if (btn) setLoading(btn, false, 'Reset Password');
+      errEl.textContent='Network error.'; errEl.classList.remove('hidden');
+    }
+  }
+</script>
+</body>
+</html>
